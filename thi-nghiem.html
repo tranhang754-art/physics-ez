@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thí nghiệm mô phỏng gần gũi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<style>
+
+:root{--ink:#0b0a0c;--panel:#151317;--panel2:#1d1a20;--line:#2e2833;--pink:#ff4fa3;--pink-soft:#ffa6d2;--fg:#f6eef2;--mute:#b3a3ae;--yellow:#ffd34d;
+--display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;--body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}
+:root[data-theme="light"]{--ink:#fbf4f7;--panel:#ffffff;--panel-2:#f6e8ef;--panel2:#f6e8ef;--line:#e0c6d3;--fg:#1d1319;--mute:#6c5562;--pink:#d4206c;--pink-soft:#b8185b;
+--good:#17825a;--bad:#c0262d;--yellow:#9a6100;--c-drag:#c2410c;--c-lift:#0f8a56;--c-weight:#946200;--c-vel:#0369a1;--c-push:#6d3fd1;--navbg:#ffffff;--navline:#e0c6d3;--navfg:#1d1319;color-scheme:light}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{font-size:17px}
+body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body);line-height:1.55;
+ padding-block:12px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1280px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;margin:0;text-wrap:balance;line-height:1.02}
+a{color:var(--pink-soft)}
+:focus-visible{outline:3px solid var(--pink-soft);outline-offset:2px}
+.kicker{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--pink);font-weight:700}
+.btn{display:inline-block;background:var(--pink);color:var(--ink);font-weight:700;text-decoration:none;border-radius:6px;padding:11px 20px}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--pink)}
+.foot{margin-top:22px;padding-top:12px;border-top:1px solid var(--line);color:var(--mute);font-size:.9rem;display:grid;gap:6px}
+@media (max-width:520px){html{font-size:16px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+header.ph{display:grid;gap:6px;padding:0 0 10px}
+header.ph h1{font-size:clamp(26px,4vw,38px);font-weight:800}
+header.ph h1 span,section h2 span{color:var(--pink)}
+header.ph p{margin:0;color:var(--mute);max-width:none;font-size:.82rem;line-height:1.45}
+.jump{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+.jump a{font-family:var(--display);font-size:1.5rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;color:var(--fg);border:2px solid var(--pink);border-radius:8px;padding:4px 26px}
+.jump a:hover{border-color:var(--pink);color:var(--pink-soft)}
+section{margin-top:18px}
+section h2{font-size:clamp(24px,3vw,30px);font-weight:800;border-bottom:2px solid var(--pink);padding-bottom:4px;margin-bottom:10px}
+.lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,390px),1fr));grid-auto-rows:215px;gap:12px}
+.lc{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:row;min-width:0}
+.lc:hover{border-color:var(--pink)}
+.lc .im{display:block;flex:0 0 215px;background:var(--panel2);overflow:hidden}
+.lc .im img{width:100%;height:100%;min-height:0;object-fit:cover;display:block}
+.lc .bd{padding:10px 14px 12px;display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.lc h3{font-size:1.25rem;font-weight:700;flex:none}
+.lc h3 a{color:var(--fg);text-decoration:none}
+.lc p{flex:none;margin:0;color:var(--mute);font-size:.8rem;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lc .btn{align-self:flex-start;margin-top:auto;padding:5px 12px;font-size:.85rem}
+.tgs{display:flex;gap:6px;flex-wrap:wrap}
+.tg{font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;border:1px solid var(--line);color:var(--mute);border-radius:999px;padding:1px 9px}
+.tg.new{background:var(--pink);border-color:var(--pink);color:var(--ink)}
+.sc{display:flex;flex-wrap:wrap;gap:6px}
+.sc a{font-size:.72rem;text-decoration:none;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.sc a:hover{border-color:var(--pink)}
+.lc{scroll-margin-top:16px}
+.lc:target{border-color:var(--pink);box-shadow:0 0 0 2px var(--pink)}
+.lc.soon{border-style:dashed;background:transparent;opacity:.7}
+.lc.soon .bd{min-height:0}
+.lc .bd{overflow:hidden}
+</style>
+<body>
+<div class="wrap">
+<style>
+:root[data-theme="light"]{--ink:#fbf4f7;--panel:#ffffff;--panel-2:#f6e8ef;--panel2:#f6e8ef;--line:#e0c6d3;--fg:#1d1319;--mute:#6c5562;--pink:#d4206c;--pink-soft:#b8185b;
+--good:#17825a;--bad:#c0262d;--yellow:#9a6100;--c-drag:#c2410c;--c-lift:#0f8a56;--c-weight:#946200;--c-vel:#0369a1;--c-push:#6d3fd1;--navbg:#ffffff;--navline:#e0c6d3;--navfg:#1d1319;color-scheme:light}
+.sn{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--navbg,#0b0a0c);border:1px solid var(--navline,#3a3340);border-bottom:2px solid #ff4fa3;border-radius:8px;padding:8px 16px;margin:0 auto 16px;max-width:1280px;font-family:"Be Vietnam Pro",system-ui,sans-serif;font-size:20px;line-height:1.3}
+.sn a{color:var(--navfg,#f6eef2);text-decoration:none;padding:6px 2px;border-bottom:2px solid transparent}
+.sn a:hover{color:var(--pink-soft,#ffa6d2)}
+.sn a[aria-current="page"],.sn .br b{color:var(--pink,#ff4fa3)}
+.sn .mode{background:transparent;color:var(--navfg,#f6eef2);border:1px solid var(--pink,#ff4fa3);border-radius:999px;padding:6px 14px;font:600 16px/1.2 "Be Vietnam Pro",system-ui,sans-serif;cursor:pointer}
+.sn .mode:hover{background:var(--pink,#ff4fa3);color:var(--ink,#0b0a0c)}
+.sn .mode:focus-visible{outline:2px solid var(--pink-soft,#ffa6d2);outline-offset:2px}
+.sn .mode{width:auto;flex:none;margin:0;letter-spacing:normal;text-transform:none;filter:none}
+.sn a[aria-current="page"]{border-bottom-color:var(--pink,#ff4fa3);font-weight:700}
+.sn .br{font-family:"Barlow Condensed","Arial Narrow",Impact,sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;margin-right:auto;border-bottom:0}
+.sn .br b{color:var(--pink,#ff4fa3);font-weight:800}
+.sn a.up{background:#ffd34d;color:#1a1300!important;border-radius:999px;padding:5px 14px;font-size:17px;font-weight:700;border-bottom:0!important}
+.sn a.up:hover{background:#ffe27a}
+.sn a:focus-visible{outline:2px solid #ffa6d2;outline-offset:2px}
+</style><nav class="sn" aria-label="Điều hướng chính"><a class="br" href="index.html">Physics <b>EZ</b></a><a href="index.html">Trang chủ</a><a href="thi-nghiem.html" aria-current="page">Thí nghiệm mô phỏng gần gũi</a><a href="tro-li-ao.html">Trợ lí AI soạn câu lệnh cho giáo viên</a><a href="quan-ly.html" class="up">Tải lên</a><button type="button" class="mode js-mode" aria-label="Đổi giao diện sáng tối">Chế độ sáng</button></nav><script>
+(function(){var r=document.documentElement,k='physics-ez.theme',t='dark';
+try{t=localStorage.getItem(k)||'dark'}catch(e){}
+r.setAttribute('data-theme',t);
+function lab(btn){btn.textContent=(r.getAttribute('data-theme')==='light')?'Chế độ tối':'Chế độ sáng'}
+function wire(){var bs=document.querySelectorAll('.js-mode');for(var i=0;i<bs.length;i++){(function(b){lab(b);b.addEventListener('click',function(){var n=r.getAttribute('data-theme')==='light'?'dark':'light';r.setAttribute('data-theme',n);try{localStorage.setItem(k,n)}catch(e){}var all=document.querySelectorAll('.js-mode');for(var j=0;j<all.length;j++)lab(all[j])})})(bs[i])}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire);else wire();
+})();
+</script>
+<header class="ph">
+ <h1>Thí nghiệm <span>mô phỏng</span> gần gũi</h1>
+ <p>Chọn một bài. Trong mỗi bài, em đổi thông số bên phải, bấm Chạy rồi quan sát mũi tên lực và đồ thị. Giáo viên có thể thêm ảnh học sinh vào mục “Lớp của em” ngay trong bài.</p>
+ <nav class="jump" aria-label="Chọn lớp"><a href="#lop10">Lớp 10</a><a href="#lop11">Lớp 11</a><a href="#lop12">Lớp 12</a></nav>
+</header>
+<main><section id="lop10" aria-labelledby="h10"><h2 id="h10">Lớp <span>10</span></h2><div class="lg"><article class="lc" id="luc-can"><a class="im" href="luc-can-nang.html" tabindex="-1" aria-hidden="true"><img src="du.jpg" alt="" loading="lazy"></a><div class="bd"><div class="tgs"><span class="tg new">Mới</span></div><h3><a href="luc-can-nang.html">Bài 19. Lực cản và lực nâng</a></h3><p>Bảy tình huống quen thuộc, từ người nhảy dù đến khinh khí cầu. Đổi diện tích, tốc độ, hình dạng, môi trường để thấy lực cản, lực nâng, lực đẩy Ác-si-mét.</p><a class="btn" href="luc-can-nang.html">Mở bài →</a></div></article><article class="lc" id="thang-deu"><a class="im" href="lab.html#thang-deu" tabindex="-1" aria-hidden="true"><img src="thang-deu.jpg" alt="" loading="lazy"></a><div class="bd"><div class="tgs"><span class="tg">Đồ thị x–t</span></div><h3><a href="lab.html#thang-deu">Chuyển động thẳng đều</a></h3><p>Hai xe chạy trên một đường thẳng. Đổi tọa độ đầu và vận tốc, xem lúc nào hai xe gặp nhau.</p><a class="btn" href="lab.html#thang-deu">Mở bài →</a></div></article><article class="lc" id="roi-tu-do"><a class="im" href="lab.html#roi-tu-do" tabindex="-1" aria-hidden="true"><img src="roi-tu-do.jpg" alt="" loading="lazy"></a><div class="bd"><div class="tgs"><span class="tg">Chọn hành tinh</span></div><h3><a href="lab.html#roi-tu-do">Rơi tự do</a></h3><p>Thả hai vật từ hai độ cao khác nhau, thử ở các hành tinh khác nhau và so sánh thời gian rơi.</p><a class="btn" href="lab.html#roi-tu-do">Mở bài →</a></div></article><article class="lc" id="nem"><a class="im" href="lab.html#nem" tabindex="-1" aria-hidden="true"><img src="nem.jpg" alt="" loading="lazy"></a><div class="bd"><div class="tgs"><span class="tg">Ném ngang</span><span class="tg">Ném xiên</span></div><h3><a href="lab.html#nem">Chuyển động ném</a></h3><p>Ném ngang khi góc bằng 0°, ném xiên khi góc lớn hơn. Quan sát quỹ đạo, tầm xa và độ cao cực đại.</p><a class="btn" href="lab.html#nem">Mở bài →</a></div></article><article class="lc soon"><div class="bd"><div class="tgs"><span class="tg">Sắp có</span></div><h3>Chuyển động biến đổi đều</h3><p>Đang chuẩn bị.</p></div></article></div></section><section id="lop11" aria-labelledby="h11"><h2 id="h11">Lớp <span>11</span></h2><div class="lg"><article class="lc" id="dao-dong"><a class="im" href="lab.html#dao-dong" tabindex="-1" aria-hidden="true"><img src="dao-dong.jpg" alt="" loading="lazy"></a><div class="bd"><div class="tgs"><span class="tg">Đồ thị x–t</span></div><h3><a href="lab.html#dao-dong">Dao động điều hòa</a></h3><p>Con lắc lò xo nằm ngang. Đổi biên độ, pha ban đầu, khối lượng và độ cứng để xem li độ, vận tốc, chu kì.</p><a class="btn" href="lab.html#dao-dong">Mở bài →</a></div></article><article class="lc soon"><div class="bd"><div class="tgs"><span class="tg">Sắp có</span></div><h3>Sóng cơ</h3><p>Đang chuẩn bị.</p></div></article></div></section><section id="lop12" aria-labelledby="h12"><h2 id="h12">Lớp <span>12</span></h2><div class="lg"><article class="lc" id="phong-xa"><a class="im" href="lab.html#phong-xa" tabindex="-1" aria-hidden="true"><img src="phong-xa.jpg" alt="" loading="lazy"></a><div class="bd"><div class="tgs"><span class="tg">Cả lớp cùng chơi</span></div><h3><a href="lab.html#phong-xa">Phóng xạ</a></h3><p>Mỗi học sinh là một hạt nhân. Hạt nhân phân rã ngẫu nhiên, so với quy luật theo chu kì bán rã.</p><a class="btn" href="lab.html#phong-xa">Mở bài →</a></div></article><article class="lc soon"><div class="bd"><div class="tgs"><span class="tg">Sắp có</span></div><h3>Khí lí tưởng</h3><p>Đang chuẩn bị.</p></div></article></div></section></main>
+<footer class="foot"><div>Giáo viên thực hiện: Trần Thị Hằng · FPT Polyschool Hà Nội</div><div>Các mô hình vật lí đã được đơn giản hóa để phục vụ học tập, không dùng cho thiết kế kĩ thuật.</div></footer>
+</div>
+<script src="ez.js"></script><script>
+(function(){
+  if(!window.EZ)return;
+  EZ.all().then(function(items){
+    items.filter(function(x){return x.type==='sim'}).forEach(function(it){
+      var g=document.querySelector('#lop'+it.grade+' .lg');if(!g)return;
+      EZ.coverUrl(it).then(function(u){
+        var a=document.createElement('article');a.className='lc';var h=EZ.viewHref(it);
+        a.innerHTML='<a class="im" href="'+h+'" tabindex="-1" aria-hidden="true">'+(u?'<img src="'+EZ.esc(u)+'" alt="">':'')+'</a><div class="bd"><div class="tgs"><span class="tg new">Thầy cô thêm</span>'+(it.pub?'':'<span class="tg">Chưa đăng</span>')+'</div><h3><a href="'+h+'">'+EZ.esc(it.title)+'</a></h3><p>'+EZ.esc(it.desc)+'</p><a class="btn" href="'+h+'">Mở bài →</a></div>';
+        var s=g.querySelector('.lc.soon');g.insertBefore(a,s);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tải lên nội dung · Physics EZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<style>
+
+:root{--ink:#0b0a0c;--panel:#151317;--panel2:#1d1a20;--line:#2e2833;--pink:#ff4fa3;--pink-soft:#ffa6d2;--fg:#f6eef2;--mute:#b3a3ae;--yellow:#ffd34d;
+--display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;--body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}
+:root[data-theme="light"]{--ink:#fbf4f7;--panel:#ffffff;--panel-2:#f6e8ef;--panel2:#f6e8ef;--line:#e0c6d3;--fg:#1d1319;--mute:#6c5562;--pink:#d4206c;--pink-soft:#b8185b;
+--good:#17825a;--bad:#c0262d;--yellow:#9a6100;--c-drag:#c2410c;--c-lift:#0f8a56;--c-weight:#946200;--c-vel:#0369a1;--c-push:#6d3fd1;--navbg:#ffffff;--navline:#e0c6d3;--navfg:#1d1319;color-scheme:light}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{font-size:17px}
+body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body);line-height:1.55;
+ padding-block:12px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1280px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;margin:0;text-wrap:balance;line-height:1.02}
+a{color:var(--pink-soft)}
+:focus-visible{outline:3px solid var(--pink-soft);outline-offset:2px}
+.kicker{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--pink);font-weight:700}
+.btn{display:inline-block;background:var(--pink);color:var(--ink);font-weight:700;text-decoration:none;border-radius:6px;padding:11px 20px}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--pink)}
+.foot{margin-top:22px;padding-top:12px;border-top:1px solid var(--line);color:var(--mute);font-size:.9rem;display:grid;gap:6px}
+@media (max-width:520px){html{font-size:16px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.ph{display:grid;gap:6px;padding:0 0 10px}
+.ph h1{font-size:clamp(26px,4vw,38px);font-weight:800}
+.ph h1 span{color:var(--pink)}
+.ph p{margin:0;color:var(--mute);font-size:.85rem;max-width:none}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:14px;margin-top:10px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px;min-width:0;display:grid;gap:10px;align-content:start}
+.box.wide{grid-column:1/-1}
+.box h2{font-size:1.5rem;font-weight:800}
+.box h2 span{color:var(--pink)}
+.fld{display:grid;gap:4px}
+.fld label{font-size:.85rem;font-weight:600}
+.fld .h{font-size:.74rem;color:var(--mute)}
+.fld input[type=text],.fld select,.fld textarea{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit;font-size:.9rem;width:100%;min-width:0}
+.fld textarea{min-height:130px;resize:vertical}
+.fld input[type=file]{font-size:.82rem;color:var(--mute);max-width:100%}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.go{background:var(--pink);color:var(--ink);border:0;border-radius:10px;padding:13px 22px;font:700 1.05rem var(--body);cursor:pointer;justify-self:start}
+.go:hover{filter:brightness(1.1)}
+.go.ghost{background:transparent;color:var(--fg);border:1px solid var(--pink)}
+.msg{font-size:.85rem;min-height:1.2em}
+.msg.ok{color:var(--good,#7be0a6)}.msg.bad{color:#ff8a8a}
+:root[data-theme="light"] .msg.ok{color:#17825a}:root[data-theme="light"] .msg.bad{color:#c0262d}
+.li{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);padding:8px 0;font-size:.88rem}
+.li b{flex:1 1 220px;min-width:0}
+.tg{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;border:1px solid var(--line);color:var(--mute);border-radius:999px;padding:1px 9px}
+.tg.on{border-color:var(--pink);color:var(--pink-soft)}
+.li button{background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:5px 12px;font:600 .8rem var(--body);cursor:pointer}
+.li button:hover{border-color:var(--pink)}
+ol.st{margin:0;padding-left:20px;font-size:.88rem;color:var(--mute);display:grid;gap:4px}
+ol.st b{color:var(--fg)}
+.note2{font-size:.8rem;color:var(--mute);border:1px dashed var(--line);border-radius:10px;padding:8px 12px}
+
+</style>
+<body>
+<div class="wrap">
+<style>
+:root[data-theme="light"]{--ink:#fbf4f7;--panel:#ffffff;--panel-2:#f6e8ef;--panel2:#f6e8ef;--line:#e0c6d3;--fg:#1d1319;--mute:#6c5562;--pink:#d4206c;--pink-soft:#b8185b;
+--good:#17825a;--bad:#c0262d;--yellow:#9a6100;--c-drag:#c2410c;--c-lift:#0f8a56;--c-weight:#946200;--c-vel:#0369a1;--c-push:#6d3fd1;--navbg:#ffffff;--navline:#e0c6d3;--navfg:#1d1319;color-scheme:light}
+.sn{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--navbg,#0b0a0c);border:1px solid var(--navline,#3a3340);border-bottom:2px solid #ff4fa3;border-radius:8px;padding:8px 16px;margin:0 auto 16px;max-width:1280px;font-family:"Be Vietnam Pro",system-ui,sans-serif;font-size:20px;line-height:1.3}
+.sn a{color:var(--navfg,#f6eef2);text-decoration:none;padding:6px 2px;border-bottom:2px solid transparent}
+.sn a:hover{color:var(--pink-soft,#ffa6d2)}
+.sn a[aria-current="page"],.sn .br b{color:var(--pink,#ff4fa3)}
+.sn .mode{background:transparent;color:var(--navfg,#f6eef2);border:1px solid var(--pink,#ff4fa3);border-radius:999px;padding:6px 14px;font:600 16px/1.2 "Be Vietnam Pro",system-ui,sans-serif;cursor:pointer}
+.sn .mode:hover{background:var(--pink,#ff4fa3);color:var(--ink,#0b0a0c)}
+.sn .mode:focus-visible{outline:2px solid var(--pink-soft,#ffa6d2);outline-offset:2px}
+.sn .mode{width:auto;flex:none;margin:0;letter-spacing:normal;text-transform:none;filter:none}
+.sn a[aria-current="page"]{border-bottom-color:var(--pink,#ff4fa3);font-weight:700}
+.sn .br{font-family:"Barlow Condensed","Arial Narrow",Impact,sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;margin-right:auto;border-bottom:0}
+.sn .br b{color:var(--pink,#ff4fa3);font-weight:800}
+.sn a.up{background:#ffd34d;color:#1a1300!important;border-radius:999px;padding:5px 14px;font-size:17px;font-weight:700;border-bottom:0!important}
+.sn a.up:hover{background:#ffe27a}
+.sn a:focus-visible{outline:2px solid #ffa6d2;outline-offset:2px}
+</style><nav class="sn" aria-label="Điều hướng chính"><a class="br" href="index.html">Physics <b>EZ</b></a><a href="index.html">Trang chủ</a><a href="thi-nghiem.html">Thí nghiệm mô phỏng gần gũi</a><a href="tro-li-ao.html">Trợ lí AI soạn câu lệnh cho giáo viên</a><a href="quan-ly.html" class="up" aria-current="page">Tải lên</a><button type="button" class="mode js-mode" aria-label="Đổi giao diện sáng tối">Chế độ sáng</button></nav><script>
+(function(){var r=document.documentElement,k='physics-ez.theme',t='dark';
+try{t=localStorage.getItem(k)||'dark'}catch(e){}
+r.setAttribute('data-theme',t);
+function lab(btn){btn.textContent=(r.getAttribute('data-theme')==='light')?'Chế độ tối':'Chế độ sáng'}
+function wire(){var bs=document.querySelectorAll('.js-mode');for(var i=0;i<bs.length;i++){(function(b){lab(b);b.addEventListener('click',function(){var n=r.getAttribute('data-theme')==='light'?'dark':'light';r.setAttribute('data-theme',n);try{localStorage.setItem(k,n)}catch(e){}var all=document.querySelectorAll('.js-mode');for(var j=0;j<all.length;j++)lab(all[j])})})(bs[i])}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire);else wire();
+})();
+</script>
+<header class="ph"><h1>Tải lên <span>nội dung</span></h1>
+<p>Thêm bài mô phỏng hoặc câu lệnh mới mà không cần chạy lại mã. Nội dung thêm hiện ngay trên máy này; muốn học sinh và đồng nghiệp cùng thấy, làm theo mục 4.</p></header>
+<main class="cols">
+ <section class="box" aria-labelledby="h1a">
+  <h2 id="h1a">1. Thêm <span>thí nghiệm mô phỏng</span></h2>
+  <div class="fld"><label for="sTitle">Tên bài</label><input type="text" id="sTitle" placeholder="Ví dụ: Chuyển động ném ngang"></div>
+  <div class="row2">
+   <div class="fld"><label for="sGrade">Lớp</label><select id="sGrade"><option value="10">Lớp 10</option><option value="11">Lớp 11</option><option value="12">Lớp 12</option></select></div>
+   <div class="fld"><label for="sCover">Ảnh bìa (không bắt buộc)</label><input type="file" id="sCover" accept="image/*"></div>
+  </div>
+  <div class="fld"><label for="sDesc">Mô tả ngắn</label><input type="text" id="sDesc" placeholder="Một câu về nội dung bài"></div>
+  <div class="fld"><label for="sFile">File mô phỏng (.html)</label><input type="file" id="sFile" accept=".html,.htm,text/html"><span class="h">Chọn file HTML do AI tạo (Claude, AI Studio…). Tối đa khoảng 3 MB.</span></div>
+  <button type="button" class="go" id="sAdd">Thêm vào web</button>
+  <div class="msg" id="sMsg" role="status"></div>
+ </section>
+ <section class="box" aria-labelledby="h2a">
+  <h2 id="h2a">2. Thêm <span>câu lệnh mẫu</span></h2>
+  <div class="row2">
+   <div class="fld"><label for="pGroup">Nhóm</label><select id="pGroup"><option>Kế hoạch bài dạy</option><option>Câu hỏi và phiếu học tập</option><option>Giải thích khái niệm</option><option>Phân tích sai lầm</option><option>Khác</option></select></div>
+   <div class="fld"><label for="pTitle">Tiêu đề</label><input type="text" id="pTitle" placeholder="Ví dụ: Soạn KHBD 5E bài Lực cản"></div>
+  </div>
+  <div class="fld"><label for="pText">Nội dung câu lệnh</label><textarea id="pText" placeholder="Dán câu lệnh đã dùng tốt vào đây"></textarea></div>
+  <button type="button" class="go" id="pAdd">Thêm vào thư viện</button>
+  <div class="msg" id="pMsg" role="status"></div>
+  <span class="h" style="font-size:.74rem;color:var(--mute)">Câu lệnh hiện ở mục "Thư viện câu lệnh của thầy cô" trong trang Trợ lí AI.</span>
+ </section>
+ <section class="box wide" aria-labelledby="h3a">
+  <h2 id="h3a">3. Nội dung <span>đã thêm</span></h2>
+  <div id="list"><div class="msg">Đang tải…</div></div>
+ </section>
+ <section class="box wide" aria-labelledby="h4a">
+  <h2 id="h4a">4. Đưa lên web <span>cho mọi người</span></h2>
+  <ol class="st">
+   <li>Bấm <b>Tạo gói cập nhật</b>: máy tải về file <b>noi-dung.json</b> và các file bài, ảnh bìa mới.</li>
+   <li>Vào kho GitHub của web, chọn <b>Add file → Upload files</b>.</li>
+   <li>Kéo tất cả file vừa tải vào (file noi-dung.json cũ sẽ được thay), rồi bấm <b>Commit changes</b>.</li>
+   <li>Đợi khoảng 1–2 phút, tải lại web: nội dung mới hiện cho mọi người, không phải chạy lại mã.</li>
+  </ol>
+  <button type="button" class="go ghost" id="exp">Tạo gói cập nhật</button>
+  <div id="files"></div>
+  <div class="note2">Chưa đưa lên GitHub thì nội dung chỉ nằm trong trình duyệt của máy này. Xóa dữ liệu trình duyệt sẽ mất, nên hãy tạo gói cập nhật để giữ bản sao.</div>
+ </section>
+</main>
+<footer class="foot"><div>Giáo viên thực hiện: Trần Thị Hằng · FPT Polyschool Hà Nội</div></footer>
+
+</div>
+<script src="ez.js"></script>
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)}, esc=EZ.esc;
+  function msg(id,t,ok){var m=$(id);m.textContent=t;m.className='msg '+(ok?'ok':'bad')}
+  function toCover(f){return new Promise(function(res){
+    if(!f){res(null);return}
+    var im=new Image(),u=URL.createObjectURL(f);
+    im.onload=function(){var w=Math.min(640,im.width),h=Math.round(im.height*w/im.width),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
+      c.toBlob(function(b){URL.revokeObjectURL(u);res(b?{blob:b,ext:'jpg'}:null)},'image/jpeg',.85)};
+    im.onerror=function(){URL.revokeObjectURL(u);res(null)};im.src=u})}
+  function refresh(){
+    EZ.all().then(function(items){
+      if(!items.length){$('list').innerHTML='<div class="msg">Chưa có nội dung thêm.</div>';return}
+      $('list').innerHTML=items.map(function(it){
+        var kind=it.type==='sim'?('Lớp '+esc(it.grade)+' · mô phỏng'):('Câu lệnh · '+esc(it.group));
+        var st=it.pub?'<span class="tg on">Đã đăng</span>':'<span class="tg">Chỉ trên máy này</span>';
+        var view=it.type==='sim'?'<button type="button" data-v="'+esc(it.id)+'">Xem</button>':'';
+        var del=it.pub?'':'<button type="button" data-d="'+esc(it.id)+'">Xóa</button>';
+        return '<div class="li"><b>'+esc(it.title)+'</b><span class="tg">'+kind+'</span>'+st+view+del+'</div>'}).join('');
+      $('list').onclick=function(e){
+        var d=e.target.getAttribute&&e.target.getAttribute('data-d'),v=e.target.getAttribute&&e.target.getAttribute('data-v');
+        if(d){EZ.remove(d).then(refresh)}
+        if(v){var it=items.filter(function(x){return x.id===v})[0];if(it)location.href=EZ.viewHref(it)}};
+    })}
+  $('sAdd').addEventListener('click',function(){
+    var t=$('sTitle').value.trim(),f=$('sFile').files[0];
+    if(!t){msg('sMsg','Hãy nhập tên bài.');return}
+    if(!f){msg('sMsg','Hãy chọn file mô phỏng (.html).');return}
+    if(f.size>3.2*1024*1024){msg('sMsg','File lớn hơn 3 MB, hãy nén hoặc bỏ ảnh nhúng.');return}
+    Promise.all([f.text(),toCover($('sCover').files[0])]).then(function(r){
+      if(!/<\w+[\s>]/.test(r[0])){msg('sMsg','File không giống một trang HTML.');return}
+      return EZ.addSim({title:t,grade:$('sGrade').value,desc:$('sDesc').value.trim()},r[0],r[1]).then(function(){
+        msg('sMsg','Đã thêm "'+t+'". Xem ở trang Thí nghiệm mô phỏng gần gũi, mục Lớp '+$('sGrade').value+'.',true);
+        $('sTitle').value='';$('sDesc').value='';$('sFile').value='';$('sCover').value='';refresh()})
+    }).catch(function(){msg('sMsg','Trình duyệt không cho lưu trên máy này (có thể do chế độ riêng tư hoặc khung xem trước). Hãy mở web đã tải về hoặc đã đăng.')})});
+  $('pAdd').addEventListener('click',function(){
+    var t=$('pTitle').value.trim(),x=$('pText').value.trim();
+    if(!t||!x){msg('pMsg','Hãy nhập tiêu đề và nội dung câu lệnh.');return}
+    EZ.addPrompt({group:$('pGroup').value,title:t,text:x}).then(function(){
+      msg('pMsg','Đã thêm câu lệnh "'+t+'".',true);$('pTitle').value='';$('pText').value='';refresh()
+    }).catch(function(){msg('pMsg','Trình duyệt không cho lưu trên máy này. Hãy mở web đã tải về hoặc đã đăng.')})});
+  $('exp').addEventListener('click',function(){
+    EZ.all().then(async function(items){
+      if(!items.length){$('files').innerHTML='<div class="msg bad">Chưa có nội dung để xuất.</div>';return}
+      var files=[{name:'noi-dung.json',blob:new Blob([EZ.manifest(items)],{type:'application/json'})}];
+      for(var i=0;i<items.length;i++){var it=items[i];if(it.pub)continue;
+        if(it.file){var h=await EZ.file(it.file);if(h)files.push({name:it.file,blob:new Blob([h],{type:'text/html'})})}
+        if(it.cover){var c=await EZ.file(it.cover);if(c)files.push({name:it.cover,blob:c})}}
+      $('files').innerHTML='<div class="msg ok">Gói gồm '+files.length+' file. Tải từng file hoặc tải tất cả:</div>'+files.map(function(f,i){return '<div class="li"><b>'+esc(f.name)+'</b><button type="button" data-f="'+i+'">Tải về</button></div>'}).join('')+'<button type="button" class="go" id="all" style="margin-top:8px">Tải tất cả</button>';
+      $('files').onclick=async function(e){var k=e.target.getAttribute&&e.target.getAttribute('data-f');
+        if(k!==null&&k!==undefined&&k!==''){EZ.saveFile(files[+k].blob,files[+k].name)}
+        if(e.target.id==='all'){for(var j=0;j<files.length;j++){await EZ.saveFile(files[j].blob,files[j].name)}}}
+    })});
+  EZ.supported().then(function(ok){if(!ok){$('list').innerHTML='<div class="msg bad">Khung này không cho lưu nội dung trên máy. Hãy mở web đã tải về hoặc đã đăng lên GitHub để dùng mục Tải lên.</div>'}else refresh()});
+})();
+</script>
+</body>
+</html>

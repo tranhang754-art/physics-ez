@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xem bài · Physics EZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<style>
+
+:root{--ink:#0b0a0c;--panel:#151317;--panel2:#1d1a20;--line:#2e2833;--pink:#ff4fa3;--pink-soft:#ffa6d2;--fg:#f6eef2;--mute:#b3a3ae;--yellow:#ffd34d;
+--display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;--body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}
+:root[data-theme="light"]{--ink:#fbf4f7;--panel:#ffffff;--panel-2:#f6e8ef;--panel2:#f6e8ef;--line:#e0c6d3;--fg:#1d1319;--mute:#6c5562;--pink:#d4206c;--pink-soft:#b8185b;
+--good:#17825a;--bad:#c0262d;--yellow:#9a6100;--c-drag:#c2410c;--c-lift:#0f8a56;--c-weight:#946200;--c-vel:#0369a1;--c-push:#6d3fd1;--navbg:#ffffff;--navline:#e0c6d3;--navfg:#1d1319;color-scheme:light}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{font-size:17px}
+body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body);line-height:1.55;
+ padding-block:12px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1280px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;margin:0;text-wrap:balance;line-height:1.02}
+a{color:var(--pink-soft)}
+:focus-visible{outline:3px solid var(--pink-soft);outline-offset:2px}
+.kicker{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--pink);font-weight:700}
+.btn{display:inline-block;background:var(--pink);color:var(--ink);font-weight:700;text-decoration:none;border-radius:6px;padding:11px 20px}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--pink)}
+.foot{margin-top:22px;padding-top:12px;border-top:1px solid var(--line);color:var(--mute);font-size:.9rem;display:grid;gap:6px}
+@media (max-width:520px){html{font-size:16px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.msg{font-size:.9rem}.msg.bad{color:#ff8a8a}
+</style>
+<body>
+<div class="wrap">
+<style>
+:root[data-theme="light"]{--ink:#fbf4f7;--panel:#ffffff;--panel-2:#f6e8ef;--panel2:#f6e8ef;--line:#e0c6d3;--fg:#1d1319;--mute:#6c5562;--pink:#d4206c;--pink-soft:#b8185b;
+--good:#17825a;--bad:#c0262d;--yellow:#9a6100;--c-drag:#c2410c;--c-lift:#0f8a56;--c-weight:#946200;--c-vel:#0369a1;--c-push:#6d3fd1;--navbg:#ffffff;--navline:#e0c6d3;--navfg:#1d1319;color-scheme:light}
+.sn{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--navbg,#0b0a0c);border:1px solid var(--navline,#3a3340);border-bottom:2px solid #ff4fa3;border-radius:8px;padding:8px 16px;margin:0 auto 16px;max-width:1280px;font-family:"Be Vietnam Pro",system-ui,sans-serif;font-size:20px;line-height:1.3}
+.sn a{color:var(--navfg,#f6eef2);text-decoration:none;padding:6px 2px;border-bottom:2px solid transparent}
+.sn a:hover{color:var(--pink-soft,#ffa6d2)}
+.sn a[aria-current="page"],.sn .br b{color:var(--pink,#ff4fa3)}
+.sn .mode{background:transparent;color:var(--navfg,#f6eef2);border:1px solid var(--pink,#ff4fa3);border-radius:999px;padding:6px 14px;font:600 16px/1.2 "Be Vietnam Pro",system-ui,sans-serif;cursor:pointer}
+.sn .mode:hover{background:var(--pink,#ff4fa3);color:var(--ink,#0b0a0c)}
+.sn .mode:focus-visible{outline:2px solid var(--pink-soft,#ffa6d2);outline-offset:2px}
+.sn .mode{width:auto;flex:none;margin:0;letter-spacing:normal;text-transform:none;filter:none}
+.sn a[aria-current="page"]{border-bottom-color:var(--pink,#ff4fa3);font-weight:700}
+.sn .br{font-family:"Barlow Condensed","Arial Narrow",Impact,sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;margin-right:auto;border-bottom:0}
+.sn .br b{color:var(--pink,#ff4fa3);font-weight:800}
+.sn a.up{background:#ffd34d;color:#1a1300!important;border-radius:999px;padding:5px 14px;font-size:17px;font-weight:700;border-bottom:0!important}
+.sn a.up:hover{background:#ffe27a}
+.sn a:focus-visible{outline:2px solid #ffa6d2;outline-offset:2px}
+</style><nav class="sn" aria-label="Điều hướng chính"><a class="br" href="index.html">Physics <b>EZ</b></a><a href="index.html">Trang chủ</a><a href="thi-nghiem.html" aria-current="page">Thí nghiệm mô phỏng gần gũi</a><a href="tro-li-ao.html">Trợ lí AI soạn câu lệnh cho giáo viên</a><a href="quan-ly.html" class="up">Tải lên</a><button type="button" class="mode js-mode" aria-label="Đổi giao diện sáng tối">Chế độ sáng</button></nav><script>
+(function(){var r=document.documentElement,k='physics-ez.theme',t='dark';
+try{t=localStorage.getItem(k)||'dark'}catch(e){}
+r.setAttribute('data-theme',t);
+function lab(btn){btn.textContent=(r.getAttribute('data-theme')==='light')?'Chế độ tối':'Chế độ sáng'}
+function wire(){var bs=document.querySelectorAll('.js-mode');for(var i=0;i<bs.length;i++){(function(b){lab(b);b.addEventListener('click',function(){var n=r.getAttribute('data-theme')==='light'?'dark':'light';r.setAttribute('data-theme',n);try{localStorage.setItem(k,n)}catch(e){}var all=document.querySelectorAll('.js-mode');for(var j=0;j<all.length;j++)lab(all[j])})})(bs[i])}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire);else wire();
+})();
+</script>
+<div id="bar" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 auto 8px;max-width:1240px">
+ <a href="thi-nghiem.html" style="color:var(--pink-soft);font-weight:600">← Về danh sách thí nghiệm</a><span id="ttl" style="color:var(--mute);font-size:.9rem"></span>
+</div>
+<iframe id="fr" title="Thí nghiệm mô phỏng" sandbox="allow-scripts allow-same-origin allow-modals allow-forms allow-popups allow-downloads" style="display:block;width:100%;max-width:1240px;margin:0 auto;height:calc(100vh - 150px);min-height:520px;border:1px solid var(--line);border-radius:10px;background:#000"></iframe>
+<p id="err" class="msg bad" hidden style="max-width:1240px;margin:10px auto"></p>
+
+</div>
+<script src="ez.js"></script>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search),fr=document.getElementById('fr'),err=document.getElementById('err');
+  function bad(t){fr.hidden=true;err.hidden=false;err.textContent=t}
+  var f=q.get('f'),id=q.get('id');
+  if(f){
+    if(!/^[A-Za-z0-9._-]+\.html$/.test(f)){bad('Đường dẫn bài không hợp lệ.');return}
+    document.getElementById('ttl').textContent=f;fr.src=f;
+  }else if(id){
+    EZ.local().then(function(a){var it=a.filter(function(x){return x.id===id})[0];if(!it){bad('Không tìm thấy bài này trên máy. Có thể nó đã bị xóa.');return}
+      document.getElementById('ttl').textContent=it.title;document.title=it.title+' · Physics EZ';
+      EZ.file(it.file).then(function(h){if(!h){bad('Không đọc được file của bài.');return}fr.srcdoc=h})
+    },function(){bad('Trình duyệt không cho đọc nội dung đã lưu. Hãy mở web đã tải về hoặc đã đăng.')})
+  }else bad('Chưa chọn bài nào.');
+})();
+</script>
+</body>
+</html>

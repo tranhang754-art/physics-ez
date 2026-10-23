@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trợ lí AI soạn câu lệnh cho giáo viên</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap">
+<style>
+/* Bố cục: tiêu đề bên trái, dải 3 bước, lưới 5 thẻ sản phẩm; bấm thẻ mở cửa sổ nhập → cửa sổ kết quả có nút sao chép và nút sang web AI. Phong cách hồng–đen. */
+:root{
+  --bg:#100c0f; --surf:#1a1318; --surf2:#251a22; --line:#3b2a35;
+  --fg:#f7eff3; --mute:#bba8b2; --pink:#ff3d8b; --pink-soft:#ff93c0; --on-pink:#1c0610;
+  --ok:#5ad19a; --warn:#ffc04d; --shadow:rgba(0,0,0,.5);
+  --f-display:'Barlow Condensed','Arial Narrow',Impact,sans-serif;
+  --f-body:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#fbf4f7; --surf:#ffffff; --surf2:#f6e8ef; --line:#e4ccd8;
+    --fg:#1d1319; --mute:#6c5562; --pink:#d4206c; --pink-soft:#b8185b; --on-pink:#ffffff;
+    --ok:#17825a; --warn:#9a6100; --shadow:rgba(60,20,40,.22); color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#fbf4f7; --surf:#ffffff; --surf2:#f6e8ef; --line:#e4ccd8;
+  --fg:#1d1319; --mute:#6c5562; --pink:#d4206c; --pink-soft:#b8185b; --on-pink:#ffffff;
+  --ok:#17825a; --warn:#9a6100; --shadow:rgba(60,20,40,.22); color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{font-size:17px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.55;
+  padding-block:12px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;line-height:1.05;text-transform:uppercase;letter-spacing:.01em}
+a{color:var(--pink-soft)}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+
+header .tag{display:inline-block;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--pink-soft);font-weight:600}
+header h1{font-size:clamp(1.9rem,4vw,2.4rem);font-weight:800;margin-top:4px}
+header h1 em{font-style:normal;color:var(--pink)}
+header p{max-width:none;color:var(--mute);margin:6px 0 0;font-size:.8rem;white-space:nowrap}
+@media (max-width:1000px){header p{white-space:normal}}
+
+.steps{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;padding:0;margin:12px 0 16px;counter-reset:s}
+.steps li{counter-increment:s;background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:14px 16px 14px 60px;position:relative;min-width:0;font-size:1.05rem;line-height:1.35}
+.steps li::before{content:counter(s);position:absolute;left:14px;top:14px;width:34px;height:34px;font-size:1.05rem;border-radius:50%;background:var(--pink);color:var(--on-pink);font-family:var(--f-display);font-weight:800;display:grid;place-items:center}
+.steps b{display:block}
+.steps span{color:var(--mute);font-size:.88rem}
+
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:900px){.grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;text-align:left;padding:0;cursor:pointer;transition:transform .15s,border-color .15s;min-width:0}
+.card:hover{transform:translateY(-3px);border-color:var(--pink)}
+.thumb{aspect-ratio:16/10;background:var(--surf2);display:grid;place-items:center;overflow:hidden;position:relative}
+.thumb img,.thumb svg{width:100%;height:100%;object-fit:cover;display:block}
+.card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card h3{font-size:1.5rem}
+.card p{margin:0;color:var(--mute);font-size:.8rem;line-height:1.4}
+.card .use{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.74rem;color:var(--mute)}
+.chip{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:.82rem;color:var(--fg);background:var(--surf2)}
+.card .go{color:var(--on-pink);font-weight:700;font-size:.95rem;background:var(--pink);border:0;border-radius:10px;padding:9px 18px;font-family:inherit;text-align:center;cursor:pointer;align-self:stretch;margin-top:4px}
+.card .go:hover{filter:brightness(1.1)}
+.thumb.duo{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr);gap:2px;background:var(--line)}
+.thumb.duo.h{grid-template-columns:1fr;grid-template-rows:none;aspect-ratio:auto}
+.thumb.duo.h .pv{aspect-ratio:16/7}
+.thumb.duo.h .pv img{object-position:center}
+.pv{position:relative;display:block;border:0;padding:0;margin:0;background:#000;cursor:pointer;overflow:hidden;min-width:0;font-family:inherit}
+.pv img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;transition:transform .2s}
+.pv:hover img{transform:scale(1.04)}
+.pv .play{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(11,10,12,.72);border:2px solid #fff;display:grid;place-items:center}
+.pv .play::before{content:"";border-left:14px solid #fff;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:4px}
+.pv .tool{position:absolute;left:0;right:0;bottom:0;background:rgba(11,10,12,.82);color:#fff;font-size:.74rem;font-weight:600;padding:4px 6px;text-align:center;line-height:1.25}
+.pv .tool i{font-style:normal;color:#ffa6d2}
+.pv:focus-visible{outline:3px solid var(--pink-soft);outline-offset:-3px}
+.vbox{background:var(--surf);border:1px solid var(--line);border-radius:18px;width:100%;max-width:880px;margin:auto;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.vbox .vh{display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--line)}
+.vbox .vh h2{font-size:1.1rem;flex:1}
+.vbox .vh small{display:block;font-family:var(--f-body);font-weight:600;color:var(--pink-soft);font-size:.9rem;margin-top:4px}
+.vbox video{display:block;width:100%;max-height:70vh;background:#000}
+.vbox .vf{padding:12px 18px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;color:var(--mute);font-size:.9rem}
+
+.lib{margin-top:18px;display:grid;gap:8px}
+.lib h2{font-size:1.6rem}
+.libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}
+.lc2{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:6px;min-width:0}
+.lc2 b{font-size:.95rem}
+.lc2 .t{font-size:.76rem;color:var(--mute);white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.lc2 .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lc2 button{background:var(--pink);color:var(--on-pink);border:0;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:.85rem}
+.note{margin-top:18px;padding:10px 14px;border:1px dashed var(--line);border-radius:12px;color:var(--mute);font-size:.8rem}
+.note b{color:var(--fg)}
+
+/* cửa sổ */
+.overlay{position:fixed;inset:0;background:var(--shadow);z-index:20;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;
+  padding-block:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-bottom,0px));padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.dlg{background:var(--surf);border:1px solid var(--line);border-radius:18px;width:100%;max-width:720px;margin:auto;display:flex;flex-direction:column;min-width:0}
+.dlg-h{display:flex;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+.dlg-h h2{font-size:1.7rem;flex:1}
+.dlg-h small{display:block;color:var(--mute);font-family:var(--f-body);font-weight:400;font-size:.9rem;margin-top:4px}
+.x{background:var(--surf2);border:1px solid var(--line);border-radius:10px;width:42px;height:42px;cursor:pointer;font-size:1.2rem;flex:none}
+.dlg-b{padding:16px 20px;display:flex;flex-direction:column;gap:18px}
+.dlg-f{display:flex;gap:10px;flex-wrap:wrap;padding:14px 20px 18px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--surf);border-radius:0 0 18px 18px}
+.btn{border:1px solid var(--line);background:var(--surf2);border-radius:12px;padding:11px 18px;cursor:pointer;font-weight:600}
+.btn.pri{background:var(--pink);border-color:var(--pink);color:var(--on-pink)}
+#gen{padding:10px 26px;font-size:1rem;font-weight:700;border-radius:10px;flex:0 1 auto}
+.btn:hover{filter:brightness(1.1)}
+
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fld label{font-weight:600}
+.fld label i{color:var(--pink-soft);font-style:normal}
+.fld input,.fld select,.fld textarea{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;min-width:0}
+.fld textarea{min-height:110px;resize:vertical}
+.cust{margin-top:6px}
+.hint{font-size:.78rem;color:var(--mute)}
+.hint b{color:var(--fg);font-weight:400}
+.err{color:var(--warn);font-size:.9rem;min-height:0}
+.sug{display:flex;flex-wrap:wrap;gap:6px}
+.sug button{border:1px solid var(--line);background:var(--surf2);border-radius:999px;padding:4px 12px;font-size:.85rem;cursor:pointer}
+.sug button:hover{border-color:var(--pink)}
+.meter{height:6px;border-radius:99px;background:var(--surf2);overflow:hidden}
+.meter span{display:block;height:100%;width:0;background:var(--pink);transition:width .2s}
+.ex{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;font-size:.78rem;color:var(--mute);background:var(--surf2);border-radius:10px;padding:7px 10px}
+.ex span{flex:1;min-width:200px;white-space:pre-line}.ex i{font-style:normal;color:var(--fg)}
+.ex button{border:1px solid var(--pink);background:transparent;color:var(--pink-soft);border-radius:999px;padding:4px 12px;font-size:.85rem;font-weight:600;cursor:pointer;flex:none}
+.ex button:hover{background:var(--pink);color:var(--on-pink)}
+.footerr{width:100%;color:var(--warn);font-size:.92rem;font-weight:600}
+.sec{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--pink-soft);font-weight:700;margin:2px 0 -6px}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+
+/* kết quả */
+.pbox{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:14px;min-height:300px;max-height:55vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.95rem;line-height:1.6}
+.warnbox{border-left:4px solid var(--warn);background:var(--surf2);padding:10px 14px;border-radius:0 10px 10px 0;font-size:.92rem}
+.ais{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.ai{display:flex;gap:12px;align-items:center;text-decoration:none;color:var(--fg);background:var(--surf2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-width:0}
+.ai:hover{border-color:var(--pink)}
+.ai .lg{width:44px;height:44px;border-radius:12px;background:var(--pink);color:var(--on-pink);font-family:var(--f-display);font-weight:800;display:grid;place-items:center;flex:none}
+.ai b{display:block}
+.ai small{color:var(--mute);display:block;line-height:1.35}
+.how{margin:0;padding-left:1.2rem;color:var(--mute);font-size:.95rem}
+.how li{margin:2px 0}.how b{color:var(--fg)}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;z-index:40;font-weight:600;max-width:90vw;text-align:center}
+.toggle{position:fixed;top:max(10px,env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:10;background:var(--surf);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:520px){html{font-size:16px}.dlg-b,.dlg-h,.dlg-f{padding-left:14px;padding-right:14px}}
+</style>
+<style>
+:root[data-theme="light"]{--ink:#fbf4f7;--panel:#ffffff;--panel-2:#f6e8ef;--panel2:#f6e8ef;--line:#e0c6d3;--fg:#1d1319;--mute:#6c5562;--pink:#d4206c;--pink-soft:#b8185b;
+--good:#17825a;--bad:#c0262d;--yellow:#9a6100;--c-drag:#c2410c;--c-lift:#0f8a56;--c-weight:#946200;--c-vel:#0369a1;--c-push:#6d3fd1;--navbg:#ffffff;--navline:#e0c6d3;--navfg:#1d1319;color-scheme:light}
+.sn{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--navbg,#0b0a0c);border:1px solid var(--navline,#3a3340);border-bottom:2px solid #ff4fa3;border-radius:8px;padding:8px 16px;margin:0 auto 16px;max-width:1280px;font-family:"Be Vietnam Pro",system-ui,sans-serif;font-size:20px;line-height:1.3}
+.sn a{color:var(--navfg,#f6eef2);text-decoration:none;padding:6px 2px;border-bottom:2px solid transparent}
+.sn a:hover{color:var(--pink-soft,#ffa6d2)}
+.sn a[aria-current="page"],.sn .br b{color:var(--pink,#ff4fa3)}
+.sn .mode{background:transparent;color:var(--navfg,#f6eef2);border:1px solid var(--pink,#ff4fa3);border-radius:999px;padding:6px 14px;font:600 16px/1.2 "Be Vietnam Pro",system-ui,sans-serif;cursor:pointer}
+.sn .mode:hover{background:var(--pink,#ff4fa3);color:var(--ink,#0b0a0c)}
+.sn .mode:focus-visible{outline:2px solid var(--pink-soft,#ffa6d2);outline-offset:2px}
+.sn .mode{width:auto;flex:none;margin:0;letter-spacing:normal;text-transform:none;filter:none}
+.sn a[aria-current="page"]{border-bottom-color:var(--pink,#ff4fa3);font-weight:700}
+.sn .br{font-family:"Barlow Condensed","Arial Narrow",Impact,sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;margin-right:auto;border-bottom:0}
+.sn .br b{color:var(--pink,#ff4fa3);font-weight:800}
+.sn a.up{background:#ffd34d;color:#1a1300!important;border-radius:999px;padding:5px 14px;font-size:17px;font-weight:700;border-bottom:0!important}
+.sn a.up:hover{background:#ffe27a}
+.sn a:focus-visible{outline:2px solid #ffa6d2;outline-offset:2px}
+</style><nav class="sn" aria-label="Điều hướng chính"><a class="br" href="index.html">Physics <b>EZ</b></a><a href="index.html">Trang chủ</a><a href="thi-nghiem.html">Thí nghiệm mô phỏng gần gũi</a><a href="tro-li-ao.html" aria-current="page">Trợ lí AI soạn câu lệnh cho giáo viên</a><a href="quan-ly.html" class="up">Tải lên</a><button type="button" class="mode js-mode" aria-label="Đổi giao diện sáng tối">Chế độ sáng</button></nav><script>
+(function(){var r=document.documentElement,k='physics-ez.theme',t='dark';
+try{t=localStorage.getItem(k)||'dark'}catch(e){}
+r.setAttribute('data-theme',t);
+function lab(btn){btn.textContent=(r.getAttribute('data-theme')==='light')?'Chế độ tối':'Chế độ sáng'}
+function wire(){var bs=document.querySelectorAll('.js-mode');for(var i=0;i<bs.length;i++){(function(b){lab(b);b.addEventListener('click',function(){var n=r.getAttribute('data-theme')==='light'?'dark':'light';r.setAttribute('data-theme',n);try{localStorage.setItem(k,n)}catch(e){}var all=document.querySelectorAll('.js-mode');for(var j=0;j<all.length;j++)lab(all[j])})})(bs[i])}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire);else wire();
+})();
+</script>
+
+
+<div class="wrap">
+  <header>
+    <h1>Soạn <em>câu lệnh AI</em> trong <em>một phút</em></h1>
+    <p>Chọn loại sản phẩm muốn tạo, điền vài ô, nhận câu lệnh hoàn chỉnh rồi sang ngay ứng dụng AI phù hợp. Mô tả càng chi tiết, kết quả AI trả về càng sát ý thầy cô.</p>
+  </header>
+
+  <ol class="steps">
+    <li><b>Chọn sản phẩm</b><span>Ảnh, video hoặc thí nghiệm mô phỏng.</span></li>
+    <li><b>Điền vài ô</b><span>Có ví dụ và gợi ý bên cạnh từng ô.</span></li>
+    <li><b>Sao chép và sang AI</b><span>Bấm một nút, dán câu lệnh, bấm Enter.</span></li>
+  </ol>
+
+  <section class="grid" id="grid" aria-label="Loại sản phẩm"></section>
+
+  <section class="lib" aria-label="Câu lệnh mẫu">
+    <div class="libgrid" id="libgrid"></div>
+  </section>
+
+  <p class="note"><b>Lưu ý khi dùng sản phẩm AI tạo ra:</b> AI có thể sai vật lí (chiều lực, công thức, số liệu). Hãy kiểm tra trước khi dùng cho học sinh.</p>
+</div>
+
+<div class="overlay" id="ov" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dt" id="dlg"></div>
+</div>
+<div class="overlay" id="vw" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+/* Ảnh minh họa thật: gán đường dẫn hoặc data URI vào đây để thay hình vẽ mặc định, ví dụ SAMPLES.photo = 'data:image/jpeg;base64,...' */
+var SAMPLES = {
+  photo:{img:'ex-anh-that.jpg', alt:'Ví dụ ảnh thật: tia laser đi qua khối thủy tinh, có pháp tuyến nét đứt'},
+  cartoon:{img:'ex-anh-hoat-hinh.jpg', alt:'Ví dụ ảnh hoạt hình: sơ đồ tia sáng khúc xạ qua khối thủy tinh'},
+  videoV:[
+    {poster:'video-doc-claude.jpg', src:'video-doc-claude.mp4', tool:'Claude', tier:'paid', note:'Sử dụng Claude bản trả phí', name:'Video dọc (TikTok): 3 lỗi sai về lực cản', v:1},
+    {poster:'video-doc-gemini.jpg', src:'video-doc-gemini.mp4', tool:'Gemini', tier:'free', note:'Sử dụng Gemini miễn phí', name:'Video dọc (TikTok): 3 lỗi sai về lực cản', v:1}],
+  videoH:[
+    {poster:'video-ngang-claude.jpg', src:'video-ngang-claude.mp4', tool:'Claude', tier:'paid', note:'Sử dụng Claude bản trả phí', name:'Video ngang: Từ trường'},
+    {poster:'video-ngang-gemini.jpg', src:'video-ngang-gemini.mp4', tool:'Gemini', tier:'free', note:'Sử dụng Gemini miễn phí', name:'Video ngang: Từ trường'}],
+  sim:[
+    {poster:'mo-phong-studio.jpg', src:'mo-phong-studio.mp4', tool:'AI Studio', tier:'free', note:'Sử dụng Google AI Studio miễn phí', name:'Thí nghiệm mô phỏng: chuyển động ném ngang'},
+    {poster:'mo-phong-claude.jpg', src:'mo-phong-claude.mp4', tool:'Claude', tier:'paid', note:'Sử dụng Claude bản trả phí', name:'Thí nghiệm mô phỏng: chuyển động ném ngang'}]
+};
+
+var AI = {
+  chatgpt:{n:'ChatGPT', l:'C', url:'https://chatgpt.com/', q:'https://chatgpt.com/?q=', how:'Mở sẵn câu lệnh trong ô chat'},
+  claude:{n:'Claude', l:'Cl', url:'https://claude.ai/new', q:'https://claude.ai/new?q=', how:'Mở sẵn câu lệnh trong ô chat'},
+  gemini:{n:'Gemini', l:'G', url:'https://gemini.google.com/app', q:null, how:'Tự sao chép; bạn chỉ cần dán (Ctrl+V)'},
+  studio:{n:'Google AI Studio', l:'AI', url:'https://aistudio.google.com/prompts/new_chat', q:null, how:'Tự sao chép; bạn chỉ cần dán (Ctrl+V)'}
+};
+
+var TOPIC_SUG = ['Nhảy dù và lực cản không khí','Đạp xe ngược gió','Tàu thép nổi trên nước (lực đẩy Ác-si-mét)','Khinh khí cầu bay lên','Chim lượn và lực nâng của cánh','Hai xe: thon và góc cạnh'];
+
+var SIM_SUG = [
+  {chip:'Lớp 10 · Vật chuyển động ném ngang', lesson:'Vật lí 10 – Bài 12. Chuyển động ném', topic:'Vật chuyển động ném ngang',
+   detail:'Một quả bóng được ném theo phương ngang từ độ cao h với vận tốc đầu v0, bỏ qua lực cản không khí. Học sinh thay đổi độ cao h, vận tốc ném v0 và gia tốc rơi g rồi bấm Chạy. Mô phỏng vẽ quỹ đạo parabol, hiện các vectơ vận tốc thành phần (vx không đổi, vy tăng dần) tại từng thời điểm. Có thêm quả bóng thứ hai rơi tự do từ cùng độ cao để học sinh thấy hai quả chạm đất cùng lúc. Hiển thị thời gian bay và tầm bay xa, đối chiếu với công thức t = √(2h/g) và L = v0·t.',
+   params:'Độ cao ném h: 5 đến 80 m\nVận tốc ném v0: 1 đến 30 m/s\nGia tốc rơi g: Trái Đất 9,8 m/s², Mặt Trăng 1,6 m/s²\nBật hoặc tắt: vectơ vận tốc thành phần, quả bóng rơi tự do để so sánh',
+   outcome:'Phân tích được chuyển động ném ngang thành hai chuyển động thành phần; tính được thời gian bay và tầm bay xa.',
+   extra:'chạy chậm (slow motion) được, có vạch chia tọa độ trên quỹ đạo.'},
+  {chip:'Lớp 11 · Con lắc lò xo dao động', lesson:'Vật lí 11 – Dao động điều hòa', topic:'Con lắc lò xo dao động điều hòa',
+   detail:'Vật nặng gắn vào lò xo nằm ngang, trượt không ma sát. Học sinh đổi khối lượng m, độ cứng k và biên độ A rồi bấm Chạy. Mô phỏng hiện vật dao động, mũi tên lực kéo về, đồ thị li độ theo thời gian x(t), đồng thời hiển thị chu kì T và tần số f đo được để so sánh với T = 2π√(m/k).',
+   params:'Khối lượng vật m: 0,1 đến 2 kg\nĐộ cứng lò xo k: 10 đến 200 N/m\nBiên độ A: 2 đến 20 cm',
+   outcome:'Mô tả được dao động điều hòa; nêu được mối liên hệ giữa chu kì với khối lượng và độ cứng.',
+   extra:'hiện thêm đồ thị động năng và thế năng theo thời gian.'},
+  {chip:'Lớp 11 · Giao thoa sóng nước', lesson:'Vật lí 11 – Sóng', topic:'Giao thoa sóng nước từ hai nguồn kết hợp',
+   detail:'Hai nguồn sóng kết hợp trên mặt nước tạo ra các gợn sóng tròn. Học sinh đổi tần số, tốc độ truyền sóng và khoảng cách giữa hai nguồn. Mô phỏng hiện hình ảnh sóng với các vân cực đại và cực tiểu. Học sinh chọn một điểm bất kì để xem hiệu đường đi d2 − d1 và biết điểm đó dao động mạnh nhất hay đứng yên.',
+   params:'Tần số: 1 đến 10 Hz\nTốc độ truyền sóng: 10 đến 30 cm/s\nKhoảng cách hai nguồn: 2 đến 10 cm',
+   outcome:'Giải thích được hiện tượng giao thoa; xác định được điều kiện cực đại và cực tiểu giao thoa.',
+   extra:'tô màu khác nhau cho vân cực đại và cực tiểu.'},
+  {chip:'Lớp 12 · Khí lí tưởng', lesson:'Vật lí 12 – Khí lí tưởng', topic:'Chuyển động nhiệt của phân tử khí và áp suất',
+   detail:'Một bình kín có pít-tông chứa các phân tử khí chuyển động hỗn loạn. Học sinh đổi nhiệt độ và thể tích. Mô phỏng hiện các phân tử chuyển động nhanh hơn khi nhiệt độ tăng, đếm số va chạm lên thành bình, hiển thị áp suất và vẽ đồ thị p–V ở nhiệt độ không đổi để kiểm chứng định luật Boyle.',
+   params:'Nhiệt độ: 200 đến 500 K\nThể tích: 1 đến 5 lít\nSố phân tử: 20 đến 100',
+   outcome:'Giải thích được áp suất khí theo chuyển động nhiệt của phân tử; vận dụng được định luật Boyle.',
+   extra:'đổi màu phân tử theo tốc độ (nhanh màu hồng, chậm màu xám).'},
+  {chip:'Lớp 12 · Cảm ứng điện từ', lesson:'Vật lí 12 – Cảm ứng điện từ', topic:'Nam châm chuyển động trong cuộn dây',
+   detail:'Một thanh nam châm di chuyển vào hoặc ra khỏi cuộn dây nối với điện kế. Học sinh kéo nam châm bằng chuột, đổi tốc độ, số vòng dây và cực của nam châm. Mô phỏng hiện đường sức từ, kim điện kế lệch theo chiều và độ lớn của suất điện động cảm ứng, kèm đồ thị từ thông và suất điện động theo thời gian.',
+   params:'Tốc độ nam châm: 0,1 đến 2 m/s\nSố vòng dây: 50 đến 500 vòng\nCực nam châm: Bắc hoặc Nam',
+   outcome:'Mô tả được hiện tượng cảm ứng điện từ; xác định được chiều và độ lớn của suất điện động cảm ứng.',
+   extra:'có đèn LED sáng theo độ lớn của dòng điện cảm ứng.'}
+];
+var RATIOS = [
+  {v:'16:9',l:'16:9 – ngang',ex:'Hợp slide, màn chiếu, YouTube.'},
+  {v:'9:16',l:'9:16 – dọc',ex:'Hợp TikTok, Reels, ảnh bìa dọc.'},
+  {v:'1:1',l:'1:1 – vuông',ex:'Hợp bài đăng Facebook, Zalo.'},
+  {v:'4:5',l:'4:5 – dọc vừa',ex:'Hợp bài đăng Facebook, Instagram.'},
+  {v:'A4 dọc (tỉ lệ 1:1,41)',l:'A4 dọc',ex:'Hợp phiếu học tập, poster in.'}
+];
+var DUR_H = [
+  {v:'30 giây',T:30,l:'30 giây',ex:'Một ý chính, 2 đến 3 ý nhỏ.'},
+  {v:'60 giây',T:60,l:'1 phút',ex:'Giải thích một hiện tượng, 3 đến 5 ý.'},
+  {v:'90 giây',T:90,l:'1 phút 30 giây',ex:'Giải thích kèm ví dụ, 4 đến 6 ý.'},
+  {v:'2 phút',T:120,l:'2 phút',ex:'Bài giảng ngắn, có nhiều ví dụ.'}
+];
+var DUR_V = [
+  {v:'15 đến 20 giây',T:18,l:'15–20 giây',ex:'Một mẹo hoặc một lỗi sai, 1 đến 2 ý.'},
+  {v:'28 đến 35 giây',T:32,l:'28–35 giây (khuyên dùng)',ex:'Vừa đủ để xem hết, 3 ý nhỏ.'},
+  {v:'45 đến 60 giây',T:52,l:'45–60 giây',ex:'Giải thích kỹ hơn, 4 đến 5 ý.'}
+];
+var LOOK_V = [
+  {v:'hiện đại, tối giản, chuyên nghiệp, dễ đọc ngay cả trên màn hình nhỏ. Tông màu chủ đạo hồng, trắng, đen, xám đậm (kiểu Blackpink): hồng chỉ dùng cho từ khóa, số thứ tự, icon và đường chuyển động; nền đen hoặc xám đậm xen kẽ hồng rất nhạt để tạo tương phản. Không quá nữ tính hoặc dễ thương, ưu tiên cảm giác creator content, chữ rõ và mạnh, có thứ bậc',l:'Hồng – đen hiện đại (mặc định)',ex:'Giống video infographic đã đăng của cô Hằng.'},
+  {v:'sáng, sạch, dễ nhìn trong lớp học. Nền trắng, chữ xanh navy, nhấn màu cam cho từ khóa và số liệu, bố cục thoáng, chữ lớn',l:'Xanh – trắng sáng',ex:'Hợp chiếu trong lớp, nền sáng.'},
+  {v:'hoạt hình thân thiện cho học sinh, màu tươi vừa phải, nhân vật hoạt hình không giống người thật, chữ vẫn rõ và gọn',l:'Hoạt hình thân thiện',ex:'Hợp học sinh THCS, lớp 10 đầu năm.'}
+];
+var PURPOSE = [
+  {v:'giải thích bài mới',l:'Giải thích bài mới',ex:'Trình bày khái niệm, công thức, ví dụ.'},
+  {v:'ôn tập và ghi nhớ',l:'Ôn tập và ghi nhớ',ex:'Tóm tắt ý chính, dễ nhớ.'},
+  {v:'nêu các lỗi sai học sinh hay mắc',l:'Lỗi sai hay gặp',ex:'Nêu lỗi sai rồi sửa lại cho đúng.'},
+  {v:'giới thiệu một thí nghiệm',l:'Giới thiệu thí nghiệm',ex:'Mô tả cách làm và điều quan sát được.'}
+];
+
+var TYPES = {
+  photo:{
+    title:'Tạo ảnh thật', desc:'Ảnh chụp chân thực để minh họa bài giảng, tài liệu, bìa video.',
+    sub:'Ảnh trông như chụp bằng máy ảnh, không bóng nhựa kiểu AI.',
+    ai:['chatgpt','gemini'], why:'ChatGPT và Gemini đều tạo ảnh trực tiếp.',
+    fields:[
+      {id:'topic',t:'text',l:'Nội dung chính của ảnh',req:1,ph:'Ví dụ: người nhảy dù đang rơi, dù đã mở',sug:1},
+      {id:'detail',t:'area',l:'Mô tả chi tiết',req:1,meter:1,ph:'Ví dụ: Một vận động viên mặc đồ cam nhảy dù, dù tròn màu đỏ trắng đã mở hoàn toàn, nhìn từ phía dưới lên, nền trời xanh có vài đám mây mỏng.',tip:'Nên viết 2 đến 4 câu: có ai hoặc vật gì, đang làm gì, ở đâu, màu sắc, góc nhìn.'},
+      {id:'scene',t:'sel',l:'Bối cảnh',o:[
+        {v:'ngoài trời',l:'Ngoài trời',ex:'Sân trường, bầu trời, mặt hồ, đường đua.'},
+        {v:'phòng thí nghiệm',l:'Phòng thí nghiệm',ex:'Bàn thí nghiệm, dụng cụ, ống đong.'},
+        {v:'lớp học',l:'Lớp học',ex:'Bảng, bàn ghế, màn chiếu.'},
+        {v:'nền trơn, đơn giản, một màu trung tính',l:'Nền trơn',ex:'Chỉ có chủ thể, dễ ghép vào slide.'}]},
+      {id:'light',t:'sel',l:'Ánh sáng',o:[
+        {v:'tự nhiên ban ngày, cân bằng trắng khoảng 5500K, không ám vàng, không lệch màu',l:'Tự nhiên ban ngày',ex:'Sáng đều, màu thật, an toàn nhất.'},
+        {v:'ánh sáng studio mềm, một đèn chính và một đèn phụ, cân bằng trắng khoảng 5500K',l:'Studio mềm',ex:'Hợp ảnh dụng cụ, vật thể nhìn gần.'},
+        {v:'hoàng hôn ấm, bóng đổ dài, cân bằng trắng hơi ấm',l:'Hoàng hôn',ex:'Hợp ảnh khinh khí cầu, chim lượn.'}]},
+      {id:'ratio',t:'sel',l:'Tỉ lệ khung hình',o:RATIOS},
+      {id:'people',t:'sel',l:'Có người trong ảnh không?',o:[
+        {v:'không có người trong ảnh',l:'Không có người',ex:'An toàn nhất, không lo mặt giống ai.'},
+        {v:'có người nhưng quay lưng hoặc chụp xa, không thấy rõ mặt',l:'Có người, không thấy rõ mặt',ex:'Quay lưng, chụp xa, đội mũ bảo hiểm.'},
+        {v:'FACE',l:'Có người, thấy rõ mặt (mặt do AI tạo)',ex:'Khuôn mặt do AI tự tạo, không lấy ảnh của học sinh hay người thật.'}]},
+      {id:'who',t:'text',l:'Mô tả người trong ảnh (nếu có, không bắt buộc)',ph:'Ví dụ: một nữ giáo viên khoảng 30 tuổi, áo sơ mi trắng, đang chỉ vào bảng'},
+      {id:'extra',t:'area',l:'Ghi chú thêm (không bắt buộc)',ph:'Ví dụ: chừa trống góc trái để chèn chữ.',small:1}
+    ],
+    build:function(v){var face=v.people==='FACE'; return [
+      'Tạo một bức ảnh chụp chân thực về: '+v.topic+'.',
+      'Mô tả chi tiết: '+v.detail,
+      'Bối cảnh: '+v.scene+'.',
+      'Phong cách ảnh: ảnh chụp thật, ống kính 50 mm, khẩu độ f/1.8, nền mờ nhẹ. Ánh sáng '+v.light+'. Bóng đổ mềm, tự nhiên. Màu điềm đạm, không quá rực.',
+      'Chất liệu: bề mặt có độ nhám và dấu vết sử dụng nhẹ (xước nhỏ, bụi mỏng), tránh bóng nhựa và quá mịn. Bố cục hơi bất đối xứng như ảnh chụp thật, không quá hoàn hảo.',
+      'Người trong ảnh: '+(face?'có người nhìn rõ mặt'+(v.who?' ('+v.who+')':'')+'. Khuôn mặt hoàn toàn do AI tạo ra, không dựa trên bất kỳ người thật nào, không giống học sinh, giáo viên hay người nổi tiếng. Da có kết cấu tự nhiên (lỗ chân lông, nếp nhăn nhỏ), không quá mịn; mắt, răng và bàn tay đúng giải phẫu':v.people+(v.who?' ('+v.who+')':''))+'.',
+      'Tỉ lệ khung hình: '+v.ratio+', độ phân giải cao.',
+      'Chính xác vật lí: vị trí, hướng chuyển động và tư thế của các vật phải đúng với hiện tượng đã mô tả; không vẽ thêm mũi tên hay ký hiệu.',
+      face?'Không có: chữ, logo, watermark, khuôn mặt giống người thật hoặc người nổi tiếng, bàn tay biến dạng, chi tiết thừa.':'Không có: chữ, logo, watermark, khuôn mặt nhận dạng được, bàn tay biến dạng, chi tiết thừa.'
+    ].concat(v.extra?['Ghi chú thêm: '+v.extra]:[]).join('\n')}
+  },
+  cartoon:{
+    title:'Tạo ảnh hoạt hình', desc:'Hình minh họa phẳng, 3D, hoạt hình hoặc infographic cho slide và phiếu học tập.',
+    sub:'Hợp với slide, phiếu học tập, bài đăng mạng xã hội.',
+    ai:['chatgpt','gemini'], why:'ChatGPT và Gemini đều tạo ảnh trực tiếp.',
+    fields:[
+      {id:'topic',t:'text',l:'Nội dung chính của ảnh',req:1,ph:'Ví dụ: hai xe đua, một xe thon một xe góc cạnh',sug:1},
+      {id:'detail',t:'area',l:'Mô tả chi tiết',req:1,meter:1,ph:'Ví dụ: Hai xe đua cạnh nhau trên đường thẳng, xe bên trái thon như giọt nước, xe bên phải hình hộp. Gió thổi từ phải sang trái, các vệt gió cong quanh xe thon và rối ở xe hộp.',tip:'Nên viết 2 đến 4 câu: có gì trong hình, vị trí, hành động, điều muốn học sinh nhìn ra.'},
+      {id:'style',t:'sel',l:'Phong cách',o:[
+        {v:'minh họa phẳng (flat design), nét gọn, ít chi tiết',l:'Minh họa phẳng',ex:'Gọn, rõ, dễ đưa vào slide.'},
+        {v:'3D mềm, bóng nhẹ như hoạt hình Pixar nhưng không giống nhân vật có bản quyền',l:'3D mềm',ex:'Nổi khối, bắt mắt, hợp ảnh bìa.'},
+        {v:'hoạt hình 2D, nét viền rõ, màu tươi vừa phải',l:'Hoạt hình 2D',ex:'Vui mắt, hợp học sinh lớp 10.'},
+        {v:'màu nước, nét mềm, giấy có vân nhẹ',l:'Màu nước',ex:'Nhẹ nhàng, hợp bài đọc thêm.'},
+        {v:'infographic, bố cục có vùng chia rõ, icon đơn giản',l:'Infographic',ex:'Nhiều ý trong một hình; chữ sẽ thêm sau.'}]},
+      {id:'color',t:'sel',l:'Màu chủ đạo',o:[
+        {v:'hồng, trắng, đen, xám đậm; hồng chỉ để nhấn điểm chính',l:'Hồng – đen – trắng',ex:'Cùng tông với Physics EZ.'},
+        {v:'xanh dương và cam, nền sáng',l:'Xanh dương – cam',ex:'Dễ nhìn, tương phản tốt.'},
+        {v:'pastel nhẹ, tương phản thấp',l:'Pastel',ex:'Dịu mắt, hợp phiếu in.'},
+        {v:'tương phản cao, màu bão hòa vừa phải',l:'Tương phản cao',ex:'Rõ khi chiếu xa.'}]},
+      {id:'char',t:'sel',l:'Nhân vật trong ảnh',o:[
+        {v:'không có nhân vật, chỉ có vật thể',l:'Không có nhân vật',ex:'Chỉ có xe, dù, tàu, quả bóng...'},
+        {v:'có nhân vật học sinh hoạt hình, không giống người thật',l:'Học sinh hoạt hình',ex:'Nhân vật đơn giản, không giống ai cụ thể.'},
+        {v:'có một linh vật dễ thương làm điểm nhấn',l:'Linh vật dễ thương',ex:'Một con vật nhỏ làm nhân vật dẫn.'}]},
+      {id:'ratio',t:'sel',l:'Tỉ lệ khung hình',o:RATIOS},
+      {id:'extra',t:'area',l:'Ghi chú thêm (không bắt buộc)',ph:'Ví dụ: chừa trống phần trên để chèn tiêu đề.',small:1}
+    ],
+    build:function(v){return [
+      'Tạo một hình minh họa về: '+v.topic+'.',
+      'Mô tả chi tiết: '+v.detail,
+      'Phong cách: '+v.style+'.',
+      'Màu sắc: '+v.color+'.',
+      'Nhân vật: '+v.char+'.',
+      'Tỉ lệ khung hình: '+v.ratio+', độ phân giải cao, nét sắc.',
+      'Chính xác vật lí: hướng chuyển động, vị trí các vật và hình dạng phải đúng với hiện tượng đã mô tả.',
+      'Không có: chữ, logo, watermark, chi tiết thừa. (Chữ sẽ được thêm sau để tránh lỗi dấu tiếng Việt.)'
+    ].concat(v.extra?['Ghi chú thêm: '+v.extra]:[]).join('\n')}
+  },
+  videoV:{
+    title:'Video dọc (TikTok, Facebook)', desc:'Video infographic 9:16 dài khoảng 30 giây để lan tỏa kiến thức.',
+    sub:'Chỉ cần nhập các ý chính, câu lệnh tự chia cảnh và thời gian.',
+    ai:['claude','gemini'], why:'Video có nhiều chữ tiếng Việt nên nên dùng Claude trước: Claude tạo bản động chạy ngay trên màn hình, chữ đúng dấu, thầy cô quay màn hình lại. Gemini tạo được video thật nhưng mỗi lần chỉ khoảng 8 đến 10 giây và hay sai dấu chữ; nếu dùng thì tạo từng cảnh ngắn rồi ghép bằng CapCut.',
+    fields:vidFields(true), build:function(v){return vidBuild(v,true)}
+  },
+  videoH:{
+    title:'Video ngang (chiếu lớp, YouTube)', desc:'Video infographic 16:9 để chiếu trên lớp hoặc đăng YouTube, Facebook.',
+    sub:'Chỉ cần nhập các ý chính, câu lệnh tự chia cảnh và thời gian.',
+    ai:['claude','gemini'], why:'Video có nhiều chữ tiếng Việt nên nên dùng Claude trước: Claude tạo bản động chạy ngay trên màn hình, chữ đúng dấu, thầy cô quay màn hình lại. Gemini tạo được video thật nhưng mỗi lần chỉ khoảng 8 đến 10 giây và hay sai dấu chữ; nếu dùng thì tạo từng cảnh ngắn rồi ghép bằng CapCut.',
+    fields:vidFields(false), build:function(v){return vidBuild(v,false)}
+  },
+  sim:{
+    title:'Thí nghiệm mô phỏng', desc:'Ứng dụng tương tác: đổi thông số, xem đồ thị, làm trắc nghiệm.',
+    sub:'AI viết thành một trang web chạy được ngay, như các bài trong Physics EZ.',
+    ai:['claude','studio'], why:'Claude tạo và chạy ngay trong khung xem. Google AI Studio có chế độ tạo ứng dụng web.',
+    fields:[
+      {id:'lesson',t:'text',l:'Lớp và bài học',ph:'Ví dụ: '+SIM_SUG[0].lesson},
+      {id:'topic',t:'text',l:'Thí nghiệm muốn mô phỏng',req:1,ph:'Ví dụ: '+SIM_SUG[0].topic,sug:'sim'},
+      {id:'detail',t:'area',l:'Mô tả chi tiết thí nghiệm',req:1,meter:1,ph:SIM_SUG[0].detail,tip:'Nên nêu: vật gì chuyển động, học sinh được đổi gì, cần quan sát điều gì, kiến thức muốn các em rút ra.'},
+      {id:'params',t:'area',l:'Thông số học sinh được thay đổi (mỗi dòng một thông số)',ph:SIM_SUG[0].params,tip:'Ghi kèm khoảng giá trị và đơn vị nếu biết; không biết thì để AI tự đề xuất.'},
+      {id:'graphs',t:'sel',l:'Đồ thị',o:[
+        {v:'vẽ dần các đồ thị phù hợp với thí nghiệm trong lúc chạy (ví dụ quỹ đạo, tọa độ theo thời gian, vận tốc theo thời gian); mỗi trục ghi rõ đại lượng và đơn vị',l:'Đồ thị phù hợp thí nghiệm (khuyên dùng)',ex:'AI tự chọn đồ thị đúng với thí nghiệm, ví dụ ném ngang: quỹ đạo, x–t, y–t.'},
+        {v:'vẽ dần đồ thị vận tốc – thời gian (v–t) trong lúc chạy',l:'Đồ thị v–t',ex:'Một đồ thị, dễ theo dõi.'},
+        {v:'vẽ dần hai đồ thị: vận tốc – thời gian (v–t) và quãng đường – thời gian (s–t)',l:'Hai đồ thị v–t và s–t',ex:'Cho bài chuyển động đầy đủ.'},
+        {v:'không cần đồ thị, chỉ hiển thị số liệu đang đo',l:'Không cần đồ thị',ex:'Giao diện đơn giản hơn.'}]},
+      {id:'quiz',t:'sel',l:'Trắc nghiệm tương tác',o:[
+        {v:'5',l:'5 câu',ex:'Có một câu dự đoán trước khi chạy.'},
+        {v:'3',l:'3 câu',ex:'Gọn, hợp cuối tiết.'},
+        {v:'0',l:'Không cần',ex:'Chỉ có mô phỏng.'}]},
+      {id:'outcome',t:'area',l:'Yêu cầu cần đạt (không bắt buộc)',ph:SIM_SUG[0].outcome,tip:'Tốt nhất là dán nguyên văn yêu cầu cần đạt của bài trong chương trình GDPT 2018.',small:1},
+      {id:'look',t:'sel',l:'Giao diện',o:[
+        {v:'nền tối, nhấn hồng, chữ lớn dễ đọc khi chiếu màn hình',l:'Hồng – đen, chữ lớn',ex:'Cùng tông Physics EZ.'},
+        {v:'nền sáng, đơn giản, chữ lớn dễ đọc khi chiếu màn hình',l:'Sáng, đơn giản',ex:'Hợp phòng học nhiều ánh sáng.'}]},
+      {id:'extra',t:'area',l:'Ghi chú thêm (không bắt buộc)',ph:SIM_SUG[0].extra,small:1}
+    ],
+    build:function(v){
+      var q = v.quiz==='0' ? 'không cần trắc nghiệm' : v.quiz+' câu trắc nghiệm, trong đó có một câu yêu cầu học sinh dự đoán trước khi chạy mô phỏng; các phương án sai là quan niệm sai thường gặp của học sinh; sau mỗi câu có giải thích ngắn và có thể làm lại';
+      var p = v.params ? v.params.split('\n').map(function(s){return s.trim()}).filter(Boolean).map(function(s){return '- '+s}).join('\n') : '- Hãy tự đề xuất các thông số phù hợp, ghi rõ đơn vị và khoảng giá trị.';
+      return [
+        'Viết một ứng dụng tương tác mô phỏng thí nghiệm bằng một file HTML duy nhất (HTML, CSS, JavaScript thuần, không dùng thư viện ngoài), chạy được trên máy tính và điện thoại.',
+        'Bài học: '+(v.lesson||'Vật lí phổ thông')+'. Thí nghiệm: '+v.topic+'.',
+        'Yêu cầu cần đạt: '+(v.outcome||'bám theo chương trình GDPT 2018 của bài học này').replace(/[.\s]+$/,'')+'.',
+        'Mô tả chi tiết: '+v.detail,
+        'Thông số học sinh được thay đổi (dùng thanh trượt hoặc nút chọn, hiển thị đơn vị):',
+        p,
+        'Hiển thị: mô phỏng chuyển động theo thời gian thực, có nút Chạy, Tạm dừng, Đặt lại và hiển thị các số liệu đang đo; '+v.graphs+'.',
+        'Trắc nghiệm tương tác: '+q+'.',
+        'Giao diện: toàn bộ bằng tiếng Việt, '+v.look+'.',
+        'Chính xác vật lí: dùng đúng công thức trong chương trình phổ thông, ghi rõ các giả định đơn giản hóa của mô hình ngay trên màn hình, kiểm tra đơn vị và chiều của các đại lượng véc tơ. Nếu không chắc một công thức, hãy nói rõ thay vì đoán.',
+        'Trả về toàn bộ mã trong một khối duy nhất để chạy ngay.'
+      ].concat(v.extra?['Ghi chú thêm: '+v.extra]:[]).join('\n')}
+  }
+};
+
+var EX_VID = [
+  {topic:'Lực cản của không khí', points:'Ý 1: Lực cản là lực của không khí hoặc nước cản trở vật chuyển động, luôn ngược chiều chuyển động.\nÝ 2: Lực cản tăng khi tốc độ và diện tích chắn gió tăng.\nÝ 3: Tốc độ gấp đôi thì lực cản gấp 4 lần.\nÝ 4: Vật rơi nhanh dần đến khi lực cản cân bằng trọng lực thì rơi đều.\nÝ 5: Mở dù làm diện tích tăng, lực cản tăng, người rơi chậm lại.'},
+  {topic:'Tóm tắt lực cản và lực nâng', points:'Ý 1: Lực cản ngược chiều chuyển động, tăng theo tốc độ và diện tích.\nÝ 2: Hình thon có lực cản nhỏ hơn hình góc cạnh.\nÝ 3: Lực nâng của cánh chim, cánh máy bay hướng lên, tăng khi tốc độ tăng.\nÝ 4: Lực đẩy Ác-si-mét: F = ρ·g·V, với V là thể tích phần chìm.\nÝ 5: Tàu thép nổi vì phần chìm đủ lớn để lực đẩy bằng trọng lượng.'},
+  {topic:'3 lỗi sai về lực cản', points:'Lỗi 1: Lực cản chỉ có trong không khí. Sửa: nước cũng có, còn lớn hơn nhiều.\nLỗi 2: Tốc độ gấp đôi thì lực cản gấp đôi. Sửa: gấp 4 lần vì F tỉ lệ với v².\nLỗi 3: Mở dù làm trọng lực giảm. Sửa: trọng lực không đổi, lực cản tăng.'},
+  {topic:'Thí nghiệm hai xe: thon và góc cạnh', points:'Ý 1: Hai xe có khối lượng và lực kéo như nhau, chỉ khác hình dạng.\nÝ 2: Em dự đoán xe nào đạt tốc độ lớn hơn?\nÝ 3: Thay đổi hình dạng, diện tích và môi trường (không khí hoặc nước).\nÝ 4: Quan sát mũi tên lực cản và đồ thị v–t.\nÝ 5: Kết luận: xe thon chạy nhanh hơn vì lực cản nhỏ hơn.'}
+];
+function vidFields(vertical){
+  var f=[
+    {id:'topic',t:'text',l:'Chủ đề video',req:1,ph:'Ví dụ: 3 lỗi sai hay gặp về lực cản',sug:1},
+    {id:'purpose',t:'sel',l:'Mục đích',o:PURPOSE},
+    {id:'points',t:'area',l:'Các ý chính (mỗi dòng một ý, tối đa 6 ý)',req:1,live:'scenes',ph:'Lỗi 1: Lực cản chỉ có trong không khí. Sửa: nước cũng có, còn lớn hơn nhiều.\nLỗi 2: Tốc độ gấp đôi thì lực cản gấp đôi. Sửa: gấp 4 lần vì F tỉ lệ với v bình phương.\nLỗi 3: Mở dù làm trọng lực giảm. Sửa: trọng lực không đổi, lực cản tăng.',tip:'Mỗi dòng sẽ thành một cảnh. Viết câu ngắn, có số liệu hoặc công thức đúng. Câu lệnh sẽ bắt AI bám 100% nội dung này.'},
+    {id:'dur',t:'sel',l:'Thời lượng',o:vertical?DUR_V:DUR_H,def:vertical?1:1}
+  ];
+  if(vertical) f.push({id:'plat',t:'sel',l:'Đăng ở đâu',o:[
+    {v:'TikTok',l:'TikTok',ex:'Chừa vùng an toàn cho nút và chú thích của TikTok.'},
+    {v:'Facebook Reels',l:'Facebook Reels',ex:'Chừa vùng an toàn cho giao diện Reels.'},
+    {v:'YouTube Shorts',l:'YouTube Shorts',ex:'Chừa vùng an toàn cho giao diện Shorts.'}]});
+  else f.push({id:'plat',t:'sel',l:'Dùng ở đâu',o:[
+    {v:'chiếu trên lớp',l:'Chiếu trên lớp',ex:'Chữ rất lớn, nhịp chậm hơn.'},
+    {v:'đăng YouTube',l:'YouTube',ex:'Nhịp vừa phải.'},
+    {v:'đăng Facebook',l:'Facebook',ex:'Nhịp vừa phải, có thể xem không bật tiếng.'}]});
+  f.push({id:'look',t:'sel',l:'Phong cách',o:LOOK_V});
+  f.push({id:'channel',t:'text',l:'Tên hiển thị góc trên bên trái (không bắt buộc)',ph:'Ví dụ: Vật lí cô Hằng',small:1});
+  f.push({id:'extra',t:'area',l:'Ghi chú thêm (không bắt buộc)',ph:'Ví dụ: kết video bằng câu hỏi để học sinh bình luận.',small:1});
+  return f;
+}
+function splitPoints(s){
+  return (s||'').split('\n').map(function(x){return x.trim().replace(/^(?:[-•*]|\d+[.)])\s+/,'')}).filter(Boolean);
+}
+function sceneList(points,T,topic){
+  var L=splitPoints(points), n=L.length||1, hook=T>=25?3:2, end=T>=25?4:3, per=(T-hook-end)/n, t=hook, out=[];
+  out.push('Cảnh 1 (0–'+hook+' giây): hiện tiêu đề "'+topic+'"');
+  L.forEach(function(p,i){var a=Math.round(t); t+=per; out.push('Cảnh '+(i+2)+' ('+a+'–'+Math.round(t)+' giây): hiện đúng dòng chữ "'+p+'"')});
+  out.push('Cảnh '+(L.length+2)+' ('+Math.round(T-end)+'–'+T+' giây): hiện dòng chữ "Lưu video để ôn bài nhé!"');
+  return out.join('\n');
+}
+function vidBuild(v,vertical){
+  var d=v._dur, T=d.T, size=vertical?'dọc 9:16, độ phân giải 1080×1920':'ngang 16:9, độ phân giải 1920×1080';
+  var safe=vertical
+    ? 'Chừa khoảng 150 px phía trên, 250 px phía dưới và lề phải để giao diện '+v.plat+' không che chữ.'
+    : 'Chừa lề khoảng 5% ở mọi cạnh, chữ đủ lớn để đọc từ cuối lớp.';
+  var lines=[
+    'Tạo video infographic dạng motion graphic về chủ đề: '+v.topic+' (mục đích: '+v.purpose+').',
+    '',
+    'QUAN TRỌNG: Phần "HƯỚNG DẪN KỸ THUẬT" bên dưới chỉ để bạn làm theo, TUYỆT ĐỐI KHÔNG hiển thị thành chữ trên video (không hiện độ phân giải, tên font, mô tả phong cách, vùng an toàn, thời gian cảnh, tên cảnh). Trên video chỉ hiện đúng các dòng chữ nằm trong dấu ngoặc kép ở phần "CHỮ HIỂN THỊ TRÊN VIDEO". Không tự thêm chữ nào khác.',
+    '',
+    'HƯỚNG DẪN KỸ THUẬT (không hiển thị lên video):',
+    '- Khung hình: '+size+', đăng '+(vertical?'trên ':'')+v.plat+', thời lượng '+d.v+'.',
+    '- Phong cách: '+v.look+'.',
+    '- Chữ: dùng font hỗ trợ đầy đủ dấu tiếng Việt, có thứ bậc rõ (tiêu đề lớn, nội dung vừa, từ khóa nhấn màu). Mỗi cảnh chỉ một ý, đủ lâu để đọc kịp (khoảng 0,3 giây mỗi từ). Viết đúng chính tả và đúng dấu tiếng Việt, không biến dạng chữ.',
+    '- Chuyển động: mượt, dùng fade, slide, highlight, dấu tích đúng/sai, gạch bỏ rồi viết lại câu đúng; không làm kiểu slide PowerPoint.',
+    '- Hình minh họa: mỗi cảnh có hình minh họa tương ứng với nội dung, vẽ phẳng, không dùng khuôn mặt thật.',
+    '- Vùng an toàn: '+safe,
+    '- Âm thanh: nhạc nền nhẹ không lời và hiệu ứng âm thanh đơn giản khi chữ xuất hiện, khi đánh dấu đúng/sai.',
+    '- Chính xác khoa học: mọi công thức, số liệu, đơn vị phải đúng theo chương trình Vật lí phổ thông; nếu không chắc, hãy nói rõ thay vì đoán.',
+    '',
+    'CHỮ HIỂN THỊ TRÊN VIDEO (đúng từng chữ, không thêm bớt; thời gian chỉ để canh nhịp, không hiển thị):'
+  ];
+  if(v.channel) lines.push('- Góc trên bên trái, cố định suốt video: "'+v.channel+'".');
+  lines.push(sceneList(v.points,T,v.topic));
+  lines.push('');
+  lines.push('Nếu bạn không xuất được tệp video, hãy tạo bản động chạy ngay trên màn hình (một trang HTML tự phát đúng thời lượng, có nút phát lại) để tôi quay màn hình lại.');
+  if(v.extra) lines.push('Ghi chú thêm: '+v.extra);
+  return lines.join('\n');
+}
+
+/* hình minh họa mặc định */
+var ART = {
+  photo:'<svg viewBox="0 0 320 200" role="img" aria-label="Khung ảnh chụp"><rect width="320" height="200" fill="var(--surf2)"/><rect x="70" y="36" width="180" height="128" rx="10" fill="none" stroke="var(--pink)" stroke-width="5"/><circle cx="160" cy="100" r="34" fill="none" stroke="var(--fg)" stroke-width="5"/><circle cx="160" cy="100" r="13" fill="var(--pink)"/><path d="M90 150l36-30 24 20 28-26 42 36z" fill="var(--line)"/></svg>',
+  cartoon:'<svg viewBox="0 0 320 200" role="img" aria-label="Nhân vật hoạt hình nhảy dù"><rect width="320" height="200" fill="var(--surf2)"/><path d="M90 96a70 56 0 0 1 140 0z" fill="var(--pink)"/><path d="M90 96l62 64M230 96l-62 64M160 96v64" stroke="var(--fg)" stroke-width="3"/><circle cx="160" cy="146" r="12" fill="var(--fg)"/><rect x="150" y="156" width="20" height="26" rx="6" fill="var(--pink-soft)"/><path d="M44 52h46M232 40h54M20 150h40" stroke="var(--line)" stroke-width="6" stroke-linecap="round"/></svg>',
+  videoH:'<svg viewBox="0 0 320 200" role="img" aria-label="Khung video ngang"><rect width="320" height="200" fill="var(--surf2)"/><rect x="48" y="40" width="224" height="126" rx="10" fill="var(--bg)" stroke="var(--line)" stroke-width="3"/><path d="M148 84l40 19-40 19z" fill="var(--pink)"/><rect x="62" y="150" width="140" height="6" rx="3" fill="var(--line)"/><rect x="62" y="150" width="62" height="6" rx="3" fill="var(--pink)"/></svg>',
+  videoV:'<svg viewBox="0 0 320 200" role="img" aria-label="Khung video dọc"><rect width="320" height="200" fill="var(--surf2)"/><rect x="112" y="12" width="96" height="176" rx="12" fill="var(--bg)" stroke="var(--line)" stroke-width="3"/><path d="M148 78l26 15-26 15z" fill="var(--pink)"/><rect x="124" y="30" width="48" height="6" rx="3" fill="var(--pink-soft)"/><rect x="124" y="42" width="72" height="5" rx="2.5" fill="var(--line)"/><rect x="124" y="150" width="72" height="5" rx="2.5" fill="var(--line)"/><rect x="124" y="162" width="52" height="5" rx="2.5" fill="var(--line)"/></svg>',
+  sim:'<svg viewBox="0 0 320 200" role="img" aria-label="Đồ thị và thanh trượt"><rect width="320" height="200" fill="var(--surf2)"/><path d="M40 28v118h150" stroke="var(--fg)" stroke-width="3" fill="none"/><path d="M40 140C80 120 100 70 130 54s46-8 60-8" stroke="var(--pink)" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M206 52h80M206 94h80M206 136h80" stroke="var(--line)" stroke-width="6" stroke-linecap="round"/><circle cx="240" cy="52" r="9" fill="var(--pink)"/><circle cx="264" cy="94" r="9" fill="var(--pink)"/><circle cx="222" cy="136" r="9" fill="var(--pink)"/><path d="M40 170h240" stroke="var(--line)" stroke-width="6" stroke-linecap="round"/></svg>'
+};
+
+var $=function(id){return document.getElementById(id)};
+var cur=null, curId=null;
+
+function exText(p){return String(p).replace(/^Ví dụ:\s*/,'')}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function toast(msg){var t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(function(){t.hidden=true},3200)}
+
+function renderGrid(){
+  var order=['sim','videoH','videoV','photo','cartoon'];
+  $('grid').innerHTML=order.map(function(id){
+    var T=TYPES[id], S=SAMPLES[id], art;
+    if(S&&S.length){
+      art='<div class="thumb duo'+(id==='videoV'?'':' h')+'">'+S.map(function(v,i){return '<button type="button" class="pv" data-id="'+id+'" data-i="'+i+'" aria-label="Xem video mẫu: '+esc(v.name)+', '+esc(v.note)+'"><img src="'+esc(v.poster)+'" alt="" loading="lazy"><span class="play" aria-hidden="true"></span><span class="tool">'+esc(v.tool)+' · <i>'+(v.tier==='paid'?'trả phí':'miễn phí')+'</i></span></button>'}).join('')+'</div>';
+    } else if(S&&S.img){ art='<div class="thumb"><img src="'+esc(S.img)+'" alt="'+esc(S.alt)+'" loading="lazy"></div>'; }
+    else art='<div class="thumb">'+ART[id]+'</div>';
+    return '<div class="card" data-id="'+id+'">'+art+'<div class="body"><h3>'+esc(T.title)+'</h3><p>'+esc(T.desc)+'</p><div class="use">Nên dùng: '+T.ai.map(function(a){return '<span class="chip">'+AI[a].n+'</span>'}).join('')+'</div><button type="button" class="go">Tạo câu lệnh →</button></div></div>';
+  }).join('');
+}
+
+function openType(id){
+  curId=id; cur=TYPES[id];
+  if(id==='sim') cur.fields.forEach(function(q){if(SIM_SUG[0][q.id]!==undefined&&q.t!=='sel') q.ph=SIM_SUG[0][q.id]});
+  var f=cur.fields.map(fieldHtml).join('');
+  $('dlg').innerHTML='<div class="dlg-h"><h2 id="dt">'+esc(cur.title)+'<small>'+esc(cur.sub)+'</small></h2><button class="x" type="button" id="close" aria-label="Đóng">✕</button></div>'+
+    '<form id="frm" novalidate><div class="dlg-b">'+f+'</div><div class="dlg-f"><div class="footerr" id="footerr" role="alert"></div><button class="btn pri" type="button" id="gen">Tạo câu lệnh</button><button class="btn" type="button" id="cancel">Đóng</button></div></form>';
+  $('ov').hidden=false; document.body.style.overflow='hidden';
+  wireForm();
+  setTimeout(function(){var t=$('f_topic'); if(t) t.focus()},30);
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+}
+function closeDlg(){ $('ov').hidden=true; document.body.style.overflow=''; cur=null; try{history.replaceState(null,'',location.pathname)}catch(e){} }
+
+var NOCUSTOM={dur:1,purpose:1};
+function fieldHtml(f){
+  var h='<div class="fld"><label for="f_'+f.id+'">'+esc(f.l)+(f.req?' <i>*</i>':'')+'</label>';
+  if(f.t==='text') h+='<input type="text" id="f_'+f.id+'" placeholder="Gõ nội dung của thầy cô vào đây" autocomplete="off">';
+  if(f.t==='area') h+='<textarea id="f_'+f.id+'" placeholder="Gõ nội dung của thầy cô vào đây"'+(f.small?' style="min-height:70px"':'')+'></textarea>';
+  if((f.t==='text'||f.t==='area')&&f.ph) h+='<div class="ex"><span>Ví dụ: <i id="exs_'+f.id+'">'+esc(exText(f.ph))+'</i></span><button type="button" data-ex="'+f.id+'">Dùng ví dụ này</button></div>';
+  if(f.t==='sel'){
+    var cu=!NOCUSTOM[f.id];
+    h+='<select id="f_'+f.id+'">'+f.o.map(function(o,i){return '<option value="'+i+'"'+(f.def===i?' selected':'')+'>'+esc(o.l)+'</option>'}).join('')+(cu?'<option value="c">Khác: tự nhập ý của thầy cô</option>':'')+'</select>'+(cu?'<input type="text" class="cust" id="c_'+f.id+'" hidden autocomplete="off" placeholder="Gõ ý của thầy cô vào đây (xem ví dụ phía dưới để viết)">':'')+'<div class="hint" id="x_'+f.id+'"></div>';
+  }
+  if(f.meter) h+='<div class="meter" aria-hidden="true"><span id="m_'+f.id+'"></span></div><div class="hint" id="mt_'+f.id+'"></div>';
+  if(f.sug==='sim') h+='<div class="sug" aria-label="Gợi ý thí nghiệm">'+SIM_SUG.map(function(o,k){return '<button type="button" data-simk="'+k+'">'+esc(o.chip)+'</button>'}).join('')+'</div>';
+  else if(f.sug) h+='<div class="sug" aria-label="Gợi ý">'+TOPIC_SUG.map(function(s){return '<button type="button" data-sug="'+esc(s)+'">'+esc(s)+'</button>'}).join('')+'</div>';
+  if(f.tip) h+='<div class="hint">'+esc(f.tip)+'</div>';
+  if(f.live) h+='<div class="hint" id="lv_'+f.id+'"></div>';
+  h+='<div class="err" id="e_'+f.id+'"></div></div>';
+  return h;
+}
+function wireForm(){
+  cur.fields.forEach(function(f){
+    var el=$('f_'+f.id);
+    if(f.t==='sel'){
+      var upd=function(){
+        var cu=$('c_'+f.id);
+        if(el.value==='c'){ cu.hidden=false; cu.focus(); var ex=f.o.filter(function(q){return q.ex}).map(function(q){return q.ex})[0]; $('x_'+f.id).innerHTML='Thầy cô tự viết ý mong muốn vào ô trên'+(ex?'. Mẫu cách viết: <b>'+esc(f.o[0].v)+'</b>':'')+'.'; return; }
+        if(cu) cu.hidden=true;
+        var o=f.o[+el.value]; $('x_'+f.id).innerHTML=o.ex?'Ví dụ: <b>'+esc(o.ex)+'</b>':''};
+      el.addEventListener('change',upd); upd();
+    }
+    if(f.meter){
+      var m=function(){var w=el.value.trim().split(/\s+/).filter(Boolean).length, p=Math.min(100,Math.round(w/35*100));
+        $('m_'+f.id).style.width=p+'%';
+        $('mt_'+f.id).textContent=w===0?'Chưa có mô tả.':w<10?'Còn sơ sài ('+w+' từ). Thêm màu sắc, vị trí, hành động để AI hiểu rõ hơn.':w<25?'Khá rõ ('+w+' từ). Thêm vài chi tiết nữa sẽ càng sát ý.':'Rất chi tiết ('+w+' từ).'};
+      el.addEventListener('input',m); m();
+    }
+    if(f.live){
+      var lv=function(){var n=splitPoints(el.value).length, d=$('f_dur'), T=cur.fields.filter(function(x){return x.id==='dur'})[0].o[+d.value].T, per=(T-7)/Math.max(n,1), msg;
+        if(n===0) msg='Chưa có ý nào.';
+        else msg=n+' ý, mỗi cảnh khoảng '+per.toFixed(1).replace('.',',')+' giây'+(n>6?'. Nhiều hơn 6 ý sẽ làm mỗi cảnh quá ngắn, nên bớt hoặc chọn thời lượng dài hơn.':per<4.5?'. Hơi ngắn để đọc kịp, nên bớt ý hoặc chọn thời lượng dài hơn.':'. Vừa đủ để đọc kịp.');
+        $('lv_'+f.id).textContent=msg};
+      el.addEventListener('input',lv); $('f_dur').addEventListener('change',lv); lv();
+    }
+  });
+  var pf=cur.fields.filter(function(q){return q.id==='purpose'})[0];
+  if(pf&&cur.fields.some(function(q){return q.id==='points'})){
+    var setEx=function(id,text){var fd=cur.fields.filter(function(q){return q.id===id})[0]; fd.ph=text; var sp=$('exs_'+id); if(sp) sp.textContent=text};
+    var updP=function(){var e=EX_VID[+$('f_purpose').value]; setEx('topic',e.topic); setEx('points',e.points)};
+    $('f_purpose').addEventListener('change',updP); updP();
+  }
+  $('frm').addEventListener('click',function(e){
+    var x=e.target.closest('[data-ex]'); if(x){ var fid=x.getAttribute('data-ex'), fd=cur.fields.filter(function(q){return q.id===fid})[0], el=$('f_'+fid); el.value=exText(fd.ph); el.dispatchEvent(new Event('input')); $('e_'+fid).textContent=''; $('footerr').textContent=''; return; }
+    var sk=e.target.closest('[data-simk]'); if(sk){ var o=SIM_SUG[+sk.getAttribute('data-simk')]; ['lesson','topic'].forEach(function(id){var el=$('f_'+id); el.value=o[id]; el.dispatchEvent(new Event('input')); $('e_'+id).textContent=''}); ['lesson','topic','detail','params','outcome','extra'].forEach(function(id){var fd=cur.fields.filter(function(q){return q.id===id})[0]; fd.ph=o[id]; var sp=$('exs_'+id); if(sp) sp.textContent=o[id]}); $('footerr').textContent=''; return; }
+    var b=e.target.closest('[data-sug]'); if(b){ var t=$('f_topic'); t.value=b.getAttribute('data-sug'); t.focus(); $('e_topic').textContent=''; }
+  });
+  var go=function(e){if(e)e.preventDefault(); try{submit()}catch(err){$('footerr').textContent='Có lỗi khi tạo câu lệnh. Hãy tải lại trang và thử lại.'; if(window.console) console.error(err)}};
+  $('frm').addEventListener('submit',go); $('gen').addEventListener('click',go);
+  $('close').onclick=closeDlg; $('cancel').onclick=closeDlg;
+}
+function submit(){
+  var vals={}, bad=null, miss=[]; $('footerr').textContent='';
+  cur.fields.forEach(function(f){
+    var el=$('f_'+f.id), val;
+    if(f.t==='sel'){ if(el.value==='c'){ val=$('c_'+f.id).value.trim(); if(!val){ $('e_'+f.id).textContent='Hãy gõ ý của thầy cô vào ô "Khác", hoặc chọn một mục có sẵn.'; miss.push(f.l); if(!bad) bad=$('c_'+f.id); vals[f.id]=val; return; } } else { var o=f.o[+el.value]; val=o.v; if(f.id==='dur') vals._dur=o; } }
+    else val=el.value.trim();
+    vals[f.id]=val; $('e_'+f.id).textContent='';
+    if(f.req && !val){ $('e_'+f.id).textContent='Cần điền ô này (hoặc bấm "Dùng ví dụ này").'; miss.push(f.l); if(!bad) bad=el; }
+  });
+  if(bad){ $('footerr').textContent='Chưa tạo được vì còn thiếu: '+miss.join('; ')+'.'; bad.scrollIntoView({block:'center'}); bad.focus(); return; }
+  showResult(cur.build(vals));
+}
+
+function encodedUrl(ai,text){
+  var a=AI[ai]; if(!a.q) return a.url;
+  var q=encodeURIComponent(text); return q.length<=6000 ? a.q+q : a.url;
+}
+function showResult(text){
+  var ais=cur.ai.map(function(a){var A=AI[a];return '<a class="ai" data-ai="'+a+'" href="'+esc(A.url)+'" target="_blank" rel="noopener"><span class="lg">'+A.l+'</span><span><b>'+A.n+'</b><small>'+A.how+'</small></span></a>'}).join('');
+  $('dlg').innerHTML='<div class="dlg-h"><h2 id="dt">Câu lệnh của thầy cô<small>'+esc(cur.title)+'. Có thể sửa trực tiếp trong khung trước khi sao chép.</small></h2><button class="x" type="button" id="close" aria-label="Đóng">✕</button></div>'+
+    '<div class="dlg-b out"><div id="prompt" class="pbox" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Câu lệnh hoàn chỉnh" spellcheck="false"></div>'+
+    '<div class="warnbox">AI có thể sai vật lí. Kiểm tra công thức, chiều lực và số liệu trước khi dùng cho học sinh.</div>'+
+    '<div><div class="sec">Sang ứng dụng AI nên dùng</div><p class="hint" style="margin:6px 0 10px">'+esc(cur.why)+'</p><div class="ais">'+ais+'</div></div>'+
+    '<ol class="how"><li>Bấm <b>Sao chép câu lệnh</b> (bấm vào biểu tượng AI cũng tự sao chép).</li><li>Trang AI mở ra ở thẻ mới. Nếu ô chat còn trống, bấm <b>Ctrl+V</b> (điện thoại: nhấn giữ rồi chọn Dán).</li><li>Bấm <b>Enter</b>. Chưa ưng ý thì nhắn thêm để AI chỉnh, ví dụ "đổi nền sang màu sáng".</li></ol></div>'+
+    '<div class="dlg-f"><button class="btn pri" type="button" id="copy">Sao chép câu lệnh</button><button class="btn" type="button" id="back">← Sửa thông tin</button><button class="btn" type="button" id="cancel">Đóng</button></div>';
+  var ta=$('prompt'); ta.textContent=text; var getT=function(){return ta.innerText||ta.textContent};
+  ta.addEventListener('paste',function(e){e.preventDefault(); var t=(e.clipboardData&&e.clipboardData.getData('text/plain'))||''; document.execCommand('insertText',false,t)});
+  var refresh=function(){document.querySelectorAll('[data-ai]').forEach(function(a){a.href=encodedUrl(a.getAttribute('data-ai'),getT())})};
+  ta.addEventListener('input',refresh); refresh();
+  $('copy').onclick=function(){doCopy(getT())};
+  document.querySelectorAll('[data-ai]').forEach(function(a){a.addEventListener('click',function(){doCopy(getT(),true)})});
+  $('back').onclick=function(){var id=curId; openType(id)};
+  $('close').onclick=closeDlg; $('cancel').onclick=closeDlg;
+  ta.scrollTop=0;
+}
+function doCopy(text,quiet){
+  var ok=function(){toast(quiet?'Đã sao chép câu lệnh. Nếu ô chat trống, bấm Ctrl+V.':'Đã sao chép câu lệnh.')};
+  var fb=function(){
+    var ta=$('prompt'); try{var r=document.createRange();r.selectNodeContents(ta);var sl=window.getSelection();sl.removeAllRanges();sl.addRange(r);document.execCommand('copy');ok()}catch(e){toast('Chưa sao chép được. Hãy bôi đen khung câu lệnh rồi bấm Ctrl+C.')}
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok,fb); else fb();
+}
+
+$('grid').addEventListener('click',function(e){
+  var pv=e.target.closest('.pv'); if(pv){ openViewer(pv.getAttribute('data-id'), +pv.getAttribute('data-i')); return; }
+  var c=e.target.closest('.card'); if(c) openType(c.getAttribute('data-id'));
+});
+function openViewer(id,i){
+  var v=SAMPLES[id][i], T=TYPES[id], vw=$('vw');
+  vw.innerHTML='<div class="vbox" role="dialog" aria-modal="true" aria-labelledby="vt"><div class="vh"><h2 id="vt">'+esc(v.name)+'<small>'+esc(v.note)+'</small></h2><button class="x" type="button" id="vclose" aria-label="Đóng">✕</button></div>'+
+   '<video controls playsinline autoplay preload="metadata" poster="'+esc(v.poster)+'" src="'+esc(v.src)+'"></video>'+
+   '<div class="vf"><button class="btn pri" type="button" id="vmake">Tạo câu lệnh cho loại này</button><span>Video mẫu do cô Hằng tạo bằng câu lệnh của trợ lí.</span></div></div>';
+  vw.hidden=false; document.body.style.overflow='hidden';
+  $('vclose').addEventListener('click',closeViewer); $('vclose').focus();
+  $('vmake').addEventListener('click',function(){closeViewer(); openType(id)});
+}
+function closeViewer(){var vw=$('vw'),vd=vw.querySelector('video'); if(vd){vd.pause(); vd.removeAttribute('src'); vd.load()} vw.hidden=true; vw.innerHTML=''; if($('ov').hidden) document.body.style.overflow=''}
+$('vw').addEventListener('mousedown',function(e){if(e.target===$('vw')) closeViewer()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('vw').hidden) closeViewer()});
+$('ov').addEventListener('mousedown',function(e){if(e.target===$('ov')) closeDlg()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('ov').hidden) closeDlg()});
+renderGrid();
+(function(){var h=(location.hash||'').slice(1); if(TYPES[h]) openType(h)})();
+</script>
+<script src="ez.js"></script>
+<script>
+(function(){
+  if(!window.EZ)return;
+  EZ.all().then(function(items){
+    var ps=items.filter(function(x){return x.type==='prompt'});
+    if(!ps.length)return;
+    $('libgrid').innerHTML=ps.map(function(p,i){return '<div class="lc2"><span class="chip" style="justify-self:start">'+esc(p.group)+'</span><b>'+esc(p.title)+'</b><div class="t">'+esc(p.text)+'</div><div class="r"><button type="button" data-c="'+i+'">Sao chép</button>'+(p.pub?'':'<span class="hint">Chưa đăng</span>')+'</div></div>'}).join('');
+    $('libgrid').addEventListener('click',function(e){var k=e.target.getAttribute('data-c');if(k===null)return;var t=ps[+k].text;
+      function ok(){toast('Đã sao chép câu lệnh')}
+      function fb(){var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok()}catch(x){toast('Bấm Ctrl+C để sao chép')}ta.remove()}
+      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,fb);else fb()});
+  });
+})();
+</script>
+
+
+</html>

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Physics EZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<style>
+
+:root{--ink:#0b0a0c;--panel:#151317;--panel2:#1d1a20;--line:#2e2833;--pink:#ff4fa3;--pink-soft:#ffa6d2;--fg:#f6eef2;--mute:#b3a3ae;--yellow:#ffd34d;
+--display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;--body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}
+:root[data-theme="light"]{--ink:#fbf4f7;--panel:#ffffff;--panel-2:#f6e8ef;--panel2:#f6e8ef;--line:#e0c6d3;--fg:#1d1319;--mute:#6c5562;--pink:#d4206c;--pink-soft:#b8185b;
+--good:#17825a;--bad:#c0262d;--yellow:#9a6100;--c-drag:#c2410c;--c-lift:#0f8a56;--c-weight:#946200;--c-vel:#0369a1;--c-push:#6d3fd1;--navbg:#ffffff;--navline:#e0c6d3;--navfg:#1d1319;color-scheme:light}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{font-size:17px}
+body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body);line-height:1.55;
+ padding-block:12px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1280px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;margin:0;text-wrap:balance;line-height:1.02}
+a{color:var(--pink-soft)}
+:focus-visible{outline:3px solid var(--pink-soft);outline-offset:2px}
+.kicker{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--pink);font-weight:700}
+.btn{display:inline-block;background:var(--pink);color:var(--ink);font-weight:700;text-decoration:none;border-radius:6px;padding:11px 20px}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--pink)}
+.foot{margin-top:22px;padding-top:12px;border-top:1px solid var(--line);color:var(--mute);font-size:.9rem;display:grid;gap:6px}
+@media (max-width:520px){html{font-size:16px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools a.mode{text-decoration:none}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.hero{padding:0 0 14px;display:grid;gap:6px}
+.hero h1{font-size:clamp(45px,7.4vw,70px);font-weight:800;letter-spacing:.005em;line-height:1}
+.hero h1 span{color:var(--pink)}
+.hero p{margin:0;max-width:none;font-size:.74rem;line-height:1.5;color:var(--mute)}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.part{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--fg);min-width:0}
+.part:hover{border-color:var(--pink)}
+.part .art{background:var(--panel2);padding:10px;min-height:0;height:182px}
+.part .tx{padding:14px 20px 18px;display:grid;gap:8px;align-content:start}
+.part h2{font-size:34px;font-weight:800;white-space:nowrap;line-height:1.05;overflow:hidden;min-width:0}
+.part .tx{grid-template-columns:minmax(0,1fr)}
+.part h2 em{font-style:normal;color:var(--pink)}
+.part p{margin:0;color:var(--mute);font-size:.95rem;line-height:1.45}
+.part .go{justify-self:start;margin-top:4px;padding:11px 22px;font-size:1.05rem}
+.mosaic{display:grid;grid-template-columns:1.4fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:6px;height:100%;min-height:0;overflow:hidden}
+.mosaic img{width:100%;height:100%;min-height:0;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block}
+.mosaic img:first-child{grid-row:1/3}
+.mock{display:grid;gap:8px;font-size:.85rem}
+.mock .row{display:flex;flex-wrap:wrap;gap:6px}
+.mock .t{background:var(--ink);border:1px solid var(--line);border-radius:999px;padding:3px 11px;color:var(--fg)}
+.mock .t.on{background:var(--pink);color:var(--ink);border-color:var(--pink);font-weight:700}
+.mock .p{background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--mute);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;line-height:1.5}
+.mock .p b{color:var(--pink-soft);font-weight:600}
+.mock .ai{display:flex;gap:8px;flex-wrap:wrap;color:var(--mute)}
+.mock .ai span{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:3px 10px;color:var(--fg)}
+.part .art.shot{padding:0;min-height:0;background:#000}
+.part .art.shot img{width:100%;height:100%;min-height:0;object-fit:cover;object-position:left top;display:block}
+.newchip{display:inline-block;background:var(--pink);color:var(--ink);font-weight:800;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:1px 9px;margin-right:4px}
+.fresh{margin-top:20px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;border:1px solid var(--pink);border-radius:10px;padding:14px 18px;background:linear-gradient(90deg,rgba(255,79,163,.16),transparent)}
+.fresh b{font-family:var(--display);font-size:1.5rem;text-transform:uppercase;letter-spacing:.04em}
+.fresh span{color:var(--mute);flex:1 1 280px}
+.homebar{display:flex;justify-content:flex-end}
+.mode{background:transparent;color:var(--fg);border:1px solid var(--pink);border-radius:999px;padding:6px 14px;font:600 14px/1.2 var(--body);cursor:pointer}
+.mode:hover{background:var(--pink);color:var(--ink)}
+.why{margin-top:34px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:18px}
+.why div{border-top:2px solid var(--pink);padding-top:10px}
+.why h3{font-size:1.5rem;margin-bottom:4px}
+.why p{margin:0;color:var(--mute);font-size:.95rem}
+</style>
+<body>
+<div class="wrap">
+ <header class="hero">
+  <div class="toprow"><span class="kicker">Vật lí THPT · Lớp 10, 11, 12</span><span class="tools"><a class="mode" href="quan-ly.html">Tải lên nội dung</a><button type="button" class="mode js-mode" aria-label="Đổi giao diện sáng tối">Chế độ sáng</button></span></div>
+  <h1>Physics <span>EZ</span></h1>
+  <p>Thí nghiệm ảo Vật lí trung học phổ thông. Học sinh tự thay đổi được các thông số và quan sát được thí nghiệm. Nhân vật trong thí nghiệm có thể mang khuôn mặt của chính các em.</p>
+  <p>Trợ lí AI giúp giáo viên soạn câu lệnh chuẩn để tạo ảnh, video, thí nghiệm mô phỏng trong khoảng 1 phút.</p>
+ </header>
+
+ <main>
+ <div class="parts">
+  <a class="part" href="thi-nghiem.html">
+   <div class="art"><div class="mosaic">
+     <img src="xe.jpg" alt="Thí nghiệm đua xe">
+     <img src="dao-dong.jpg" alt="Thí nghiệm dao động điều hòa">
+     <img src="phong-xa.jpg" alt="Thí nghiệm phóng xạ">
+   </div></div>
+   <div class="tx">
+     <span class="kicker">Phần 1</span>
+     <h2>Thí nghiệm <em>mô phỏng</em> gần gũi</h2>
+     <p><span class="newchip">Mới</span> <b>Bài 19. Lực cản và lực nâng</b> với 7 tình huống: đạp xe, nhảy dù, bơi, hai xe, chim lượn, tàu nổi, khinh khí cầu. Cùng các bài chuyển động, dao động, phóng xạ cho lớp 10, 11, 12.</p>
+     <span class="btn go">Vào phòng thí nghiệm →</span>
+   </div>
+  </a>
+  <a class="part" href="tro-li-ao.html">
+   <div class="art shot"><img src="tro-li.jpg" alt="Ví dụ sản phẩm: thí nghiệm ném ngang do AI tạo từ câu lệnh của trợ lí"></div>
+   <div class="tx">
+     <span class="kicker">Phần 2</span>
+     <h2>Trợ lí <em>AI</em> soạn câu lệnh cho giáo viên</h2>
+     <p>Chọn loại sản phẩm (ảnh, video, thí nghiệm mô phỏng), điền vài ô, nhận câu lệnh hoàn chỉnh bằng tiếng Việt rồi sang ngay ứng dụng AI nên dùng. Ví dụ ở ảnh: thí nghiệm ném ngang.</p>
+     <span class="btn go">Mở trợ lí AI →</span>
+   </div>
+  </a>
+ </div>
+
+ </main>
+
+ <footer class="foot">
+   <div>Giáo viên thực hiện: Trần Thị Hằng · FPT Polyschool Hà Nội</div>
+   <div>Các mô hình vật lí đã được đơn giản hóa để phục vụ học tập, không dùng cho thiết kế kĩ thuật.</div>
+ </footer>
+</div>
+<script>
+(function(){var r=document.documentElement,k='physics-ez.theme',t='dark';
+try{t=localStorage.getItem(k)||'dark'}catch(e){}
+r.setAttribute('data-theme',t);
+function lab(btn){btn.textContent=(r.getAttribute('data-theme')==='light')?'Chế độ tối':'Chế độ sáng'}
+function wire(){var bs=document.querySelectorAll('.js-mode');for(var i=0;i<bs.length;i++){(function(b){lab(b);b.addEventListener('click',function(){var n=r.getAttribute('data-theme')==='light'?'dark':'light';r.setAttribute('data-theme',n);try{localStorage.setItem(k,n)}catch(e){}var all=document.querySelectorAll('.js-mode');for(var j=0;j<all.length;j++)lab(all[j])})})(bs[i])}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire);else wire();
+})();
+</script>
+<script>
+(function(){
+  function fit(){var hs=[].slice.call(document.querySelectorAll('.part h2'));if(!hs.length)return;
+    var s=46;hs.forEach(function(h){h.style.fontSize=s+'px'});
+    while(s>14&&hs.some(function(h){return h.scrollWidth>h.clientWidth+1})){s-=1;hs.forEach(function(h){h.style.fontSize=s+'px'})}}
+  fit();window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+})();
+</script>
+</body>
+</html>
