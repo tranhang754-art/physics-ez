@@ -1,0 +1,1426 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sóng cơ · Giao thoa · Sóng dừng · Physics EZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Be+Vietnam+Pro:wght@400;500;700&display=swap">
+<style>
+/* Một trang cho Chương II Sóng (Vật lí 11): chọn tình huống ở trên, bên trái là sân khấu + đồ thị + bảng số liệu, bên phải là nhân vật, thông số, số đo, lớp của em. */
+:root {
+  --ink: #0b0a0c;
+  --panel: #151317;
+  --panel-2: #211d25;
+  --line: #3a3340;
+  --pink: #ff4fa3;
+  --pink-soft: #ffa6d2;
+  --fg: #fbf4f7;
+  --mute: #c3b4bf;
+  --c-drag: #ff7a45;
+  --c-lift: #3ddc97;
+  --c-weight: #ffd23f;
+  --c-vel: #4cc9ff;
+  --c-push: #c39bff;
+  --good: #7be0a6;
+  --bad: #ff8a8a;
+  --display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+  --body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--ink); color: var(--fg); font-family: var(--body); font-size: 18px; line-height: 1.5; padding-inline: 16px; padding-block: 20px 48px; }
+.wrap { max-width: 1480px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; border-bottom: 3px solid var(--pink); padding-bottom: 14px; }
+.kicker { font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--pink); font-weight: 700; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(33px, 5.25vw, 57px); line-height: .95; margin: 4px 0 0; text-transform: uppercase; text-wrap: balance; }
+h1 span { color: var(--pink); }
+.brand { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+h2 { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .05em; text-transform: uppercase; margin: 0; }
+.blurb { margin: 0; font-size: 20px; max-width: 78ch; }
+
+nav { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: center; }
+.ngroup { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.glabel { font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: .08em; text-transform: uppercase; padding-right: 4px; }
+.glabel.can { color: var(--c-drag); } .glabel.nang { color: var(--c-lift); }
+.chip { font: inherit; font-size: 18px; font-weight: 700; background: var(--panel-2); color: var(--fg); border: 2px solid var(--line); border-radius: 999px; padding: 8px 18px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--pink); color: var(--ink); border-color: var(--pink); }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 20px; align-items: start; }
+@media (max-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.stage, .side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card-title { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.hint { font-size: 15px; color: var(--mute); }
+canvas { display: block; width: 100%; background: #0f0d11; border-radius: 8px; border: 1px solid var(--line); }
+#track { height: 500px; }
+#graph { height: 290px; }
+.transport { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.transport .slider { flex: 1 1 220px; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.slider input[type=range] { flex: 1; min-width: 0; }
+.tval { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 84px; text-align: right; }
+button { font: inherit; font-weight: 700; font-size: 18px; cursor: pointer; background: var(--pink); color: var(--ink); border: 0; border-radius: 8px; padding: 10px 20px; }
+button.ghost { background: transparent; color: var(--fg); border: 2px solid var(--pink); }
+button:hover:not(:disabled) { filter: brightness(1.12); }
+button:focus-visible, input:focus-visible, select:focus-visible, .filebtn:focus-within, .chip:focus-visible { outline: 3px solid var(--pink-soft); outline-offset: 2px; }
+.filebtn { position: relative; display: inline-block; text-align: center; cursor: pointer; font-weight: 700; font-size: 16px; color: var(--fg); border: 2px solid var(--pink); border-radius: 8px; padding: 8px 14px; }
+.filebtn input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+input[type=range], input[type=radio] { accent-color: var(--pink); }
+input[type=text], select { font: inherit; font-size: 17px; width: 100%; background: var(--panel-2); color: var(--fg); border: 2px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+label.f { display: flex; flex-direction: column; gap: 4px; font-size: 15px; color: var(--mute); }
+
+.legend { display: flex; gap: 8px 20px; flex-wrap: wrap; font-size: 16px; }
+.legend i { display: inline-block; width: 24px; height: 5px; vertical-align: middle; margin-right: 8px; border-radius: 3px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { background: var(--panel-2); color: var(--fg); border: 2px solid var(--line); padding: 7px 12px; font-size: 16px; }
+.seg button[aria-pressed="true"] { background: var(--pink); color: var(--ink); border-color: var(--pink); }
+.pitem { display: flex; flex-direction: column; gap: 6px; }
+.plabel { display: flex; justify-content: space-between; gap: 8px; font-size: 17px; font-weight: 700; }
+.plabel b { color: var(--pink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.slot { display: flex; align-items: center; gap: 10px; }
+canvas.avatar { width: 62px; height: 62px; flex: none; border: 0; background: transparent; border-radius: 0; }
+.slot .names { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; font-size: 15px; color: var(--mute); }
+
+.reads { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.read { background: var(--panel-2); border-radius: 8px; padding: 10px 12px; min-width: 0; border-left: 5px solid var(--line); }
+.read .k { font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+.read .v { font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.read.drag { border-left-color: var(--c-drag); } .read.lift { border-left-color: var(--c-lift); } .read.weight { border-left-color: var(--c-weight); } .read.vel { border-left-color: var(--c-vel); } .read.push { border-left-color: var(--c-push); }
+.note { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); font-size: 17px; }
+.note strong { color: var(--pink); }
+.formula { font-size: 20px; font-weight: 700; display: flex; flex-direction: column; gap: 4px; }
+.formula small { font-size: 15px; font-weight: 400; color: var(--mute); }
+.formula code, code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--pink-soft); }
+
+.ratios { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.rb { background: var(--panel-2); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; border-top: 4px solid var(--pink); }
+.rb h3 { margin: 0; font-size: 17px; color: var(--pink-soft); }
+.rb table { width: 100%; border-collapse: collapse; font-size: 17px; font-variant-numeric: tabular-nums; }
+.rb td { padding: 4px 4px; border-bottom: 1px solid var(--line); }
+.rb td:last-child { text-align: right; font-weight: 700; color: var(--c-weight); white-space: nowrap; }
+.rb tr.cur td:first-child { color: var(--pink-soft); font-weight: 700; }
+.tips { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-size: 18px; }
+
+.roster { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+.roster li { display: flex; align-items: center; gap: 8px; background: var(--panel-2); border-radius: 8px; padding: 5px 8px; min-width: 0; }
+.roster img { width: 40px; height: 40px; border-radius: 50%; flex: none; }
+.roster .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 17px; }
+.roster button { padding: 4px 10px; font-size: 14px; }
+.overlay { position: fixed; inset: 0; z-index: 10; background: rgba(5, 4, 6, .8); display: grid; place-items: center; padding: 16px; overflow: auto; }
+.sheet { background: var(--panel); border: 2px solid var(--pink); border-radius: 12px; padding: 16px; width: min(400px, 100%); display: flex; flex-direction: column; gap: 12px; }
+#edCanvas { width: min(300px, 100%); height: auto; aspect-ratio: 1; align-self: center; touch-action: none; cursor: grab; }
+fieldset.shapes { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+fieldset.shapes legend { font-size: 15px; color: var(--mute); padding: 0; margin-bottom: 4px; }
+fieldset.shapes label { font-size: 17px; display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.sl { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 15px; color: var(--mute); }
+.sheet-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+<style>
+:root[data-theme="light"]{--ink:#fbf4f7;--panel:#ffffff;--panel-2:#f6e8ef;--panel2:#f6e8ef;--line:#e0c6d3;--fg:#1d1319;--mute:#6c5562;--pink:#d4206c;--pink-soft:#b8185b;
+--good:#17825a;--bad:#c0262d;--yellow:#9a6100;--c-drag:#c2410c;--c-lift:#0f8a56;--c-weight:#946200;--c-vel:#0369a1;--c-push:#6d3fd1;--navbg:#ffffff;--navline:#e0c6d3;--navfg:#1d1319;color-scheme:light}
+.sn{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--navbg,#0b0a0c);border:1px solid var(--navline,#3a3340);border-bottom:2px solid #ff4fa3;border-radius:8px;padding:8px 16px;margin:0 auto 16px;max-width:1280px;font-family:"Be Vietnam Pro",system-ui,sans-serif;font-size:20px;line-height:1.3}
+.sn a{color:var(--navfg,#f6eef2);text-decoration:none;padding:6px 2px;border-bottom:2px solid transparent}
+.sn a:hover{color:var(--pink-soft,#ffa6d2)}
+.sn a[aria-current="page"],.sn .br b{color:var(--pink,#ff4fa3)}
+.sn .mode{background:transparent;color:var(--navfg,#f6eef2);border:1px solid var(--pink,#ff4fa3);border-radius:999px;padding:6px 14px;font:600 16px/1.2 "Be Vietnam Pro",system-ui,sans-serif;cursor:pointer}
+.sn .mode:hover{background:var(--pink,#ff4fa3);color:var(--ink,#0b0a0c)}
+.sn .mode:focus-visible{outline:2px solid var(--pink-soft,#ffa6d2);outline-offset:2px}
+.sn .mode{width:auto;flex:none;margin:0;letter-spacing:normal;text-transform:none;filter:none}
+.sn a[aria-current="page"]{border-bottom-color:var(--pink,#ff4fa3);font-weight:700}
+.sn .br{font-family:"Barlow Condensed","Arial Narrow",Impact,sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;margin-right:auto;border-bottom:0}
+.sn .br b{color:var(--pink,#ff4fa3);font-weight:800}
+.sn a.up{background:#ffd34d;color:#1a1300!important;border-radius:999px;padding:5px 14px;font-size:17px;font-weight:700;border-bottom:0!important}
+.sn a.up:hover{background:#ffe27a}
+.sn a:focus-visible{outline:2px solid #ffa6d2;outline-offset:2px}
+</style><nav class="sn" aria-label="Điều hướng chính"><a class="br" href="index.html">Physics <b>EZ</b></a><a href="index.html">Trang chủ</a><a href="thi-nghiem.html" aria-current="page">Thí nghiệm mô phỏng gần gũi</a><a href="tro-li-ao.html">Trợ lí AI soạn câu lệnh cho giáo viên</a><a href="quan-ly.html" class="up">Tải lên</a><button type="button" class="mode js-mode" aria-label="Đổi giao diện sáng tối">Chế độ sáng</button></nav><script>
+(function(){var r=document.documentElement,k='physics-ez.theme',t='dark';
+try{t=localStorage.getItem(k)||'dark'}catch(e){}
+r.setAttribute('data-theme',t);
+function lab(btn){btn.textContent=(r.getAttribute('data-theme')==='light')?'Chế độ tối':'Chế độ sáng'}
+function wire(){var bs=document.querySelectorAll('.js-mode');for(var i=0;i<bs.length;i++){(function(b){lab(b);b.addEventListener('click',function(){var n=r.getAttribute('data-theme')==='light'?'dark':'light';r.setAttribute('data-theme',n);try{localStorage.setItem(k,n)}catch(e){}var all=document.querySelectorAll('.js-mode');for(var j=0;j<all.length;j++)lab(all[j])})})(bs[i])}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire);else wire();
+})();
+</script>
+<style>.backbar{max-width:1240px;margin:-6px auto 10px;font-family:"Be Vietnam Pro",system-ui,sans-serif}
+.backbar a{display:inline-block;background:transparent;color:var(--fg,#f6eef2);border:2px solid var(--pink,#ff4fa3);border-radius:999px;padding:7px 18px;font-weight:700;font-size:16px;text-decoration:none}
+.backbar a:hover{background:var(--pink,#ff4fa3);color:var(--ink,#0b0a0c)}
+.backbar a:focus-visible{outline:3px solid var(--pink-soft,#ffa6d2);outline-offset:2px}</style>
+<style>
+.glabel.ga { color: var(--c-vel); } .glabel.gb { color: var(--pink); }
+.crowd { display: flex; flex-wrap: wrap; gap: 4px; }
+.crowd canvas { width: 34px; height: 34px; border: 0; background: transparent; border-radius: 0; }
+.gnote { color: var(--mute); }
+.read .v { font-size: 30px; }
+</style>
+<div class="backbar"><a id="backlnk" href="thi-nghiem.html#song-co">← Về Lớp 11 · Sóng cơ</a></div>
+
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kicker">Vật lí 11 · Kết nối tri thức · Bài 8, 9, 12, 13</div>
+      <h1>Sóng cơ <span>&amp; giao thoa</span></h1>
+    </div>
+    <div class="brand">Physics EZ</div>
+  </header>
+  <nav aria-label="Chọn tình huống">
+    <div class="ngroup" id="gA"><span class="glabel ga">Truyền sóng</span></div>
+    <div class="ngroup" id="gB"><span class="glabel gb">Giao thoa, sóng dừng</span></div>
+  </nav>
+  <p class="blurb" id="blurb"></p>
+
+
+  <div class="layout">
+    <div class="stage">
+      <section class="card" aria-label="Mô phỏng">
+        <div class="card-title"><h2 id="stTitle">Mô phỏng</h2><span class="hint" id="simhint"></span></div>
+        <canvas id="track" aria-label="Mô phỏng"></canvas>
+        <div class="transport">
+          <button id="play" type="button">Chạy</button>
+          <button id="reset" type="button" class="ghost">Về 0 s</button>
+          <div class="slider"><input id="tslider" type="range" min="0" max="40" step="0.02" value="0" aria-label="Thời gian"><span class="tval" id="tlabel">0,0 s</span></div>
+          <label class="f" style="width:130px">Tốc độ phát<select id="speed"><option value="0.5">0,5×</option><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option></select></label>
+        </div>
+      </section>
+      <section class="card" aria-label="Đồ thị">
+        <div class="card-title"><h2>Đồ thị theo thời gian</h2>
+          <label class="f" style="width:300px;max-width:100%"><select id="gmode" aria-label="Loại đồ thị"></select></label></div>
+        <canvas id="graph" aria-label="Đồ thị"></canvas>
+        <div class="legend" id="legend"></div>
+      </section>
+      <section class="card" aria-label="Bảng tỉ lệ">
+        <div class="card-title"><h2>Số liệu để so sánh</h2><span class="hint">tính ở thông số đang chọn</span></div>
+        <div class="ratios" id="ratios"></div>
+      </section>
+      <section class="card" aria-label="Gợi ý thí nghiệm">
+        <h2>Gợi ý thí nghiệm</h2>
+        <ul class="tips" id="tips"></ul>
+      </section>
+    </div>
+
+    <aside class="side">
+      <section class="card"><h2>Nhân vật</h2><div id="slots" style="display:flex;flex-direction:column;gap:12px"></div></section>
+      <section class="card"><h2>Thông số</h2><div id="params" style="display:flex;flex-direction:column;gap:16px"></div></section>
+      <section class="card"><h2>Số đo lúc này</h2>
+        <div class="reads" id="reads"></div>
+        <p class="note" id="meet"></p>
+        <div class="formula" id="formula"></div>
+      </section>
+      <section class="card"><h2>Lớp của em</h2>
+        <ul class="roster" id="roster"></ul>
+        <label class="f">Tên<input id="rName" type="text" maxlength="24" placeholder="Ví dụ: Minh Anh"></label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <label class="filebtn" id="rFileLbl">Chọn ảnh<input id="rFile" type="file" accept="image/*"></label>
+          <button id="rWipe" type="button" class="ghost">Xóa hết ảnh</button>
+        </div>
+        <p class="hint" id="rMsg" style="margin:0">Ảnh chỉ nằm trong trình duyệt trên máy này. Nhập tên rồi chọn ảnh, chỉnh khung và bấm Lưu.</p>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<div class="overlay" id="editor" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+    <h2 id="edTitle">Chỉnh ảnh</h2>
+    <canvas id="edCanvas" width="300" height="300" aria-label="Xem trước sticker"></canvas>
+    <p class="hint" id="edHint" style="margin:0"></p>
+    <fieldset class="shapes"><legend>Hình khung</legend>
+      <label><input type="radio" name="shape" value="circle" checked> Tròn</label>
+      <label><input type="radio" name="shape" value="round"> Vuông bo góc</label>
+      <label><input type="radio" name="shape" value="cutout"> Cắt theo hình người (ảnh PNG đã xóa nền)</label>
+    </fieldset>
+    <label class="sl">Thu phóng<input id="edZoom" type="range" min="0.5" max="4" step="0.01" value="1"></label>
+    <label class="sl">Dời ngang<input id="edX" type="range" min="-1" max="1" step="0.01" value="0"></label>
+    <label class="sl">Dời dọc<input id="edY" type="range" min="-1" max="1" step="0.01" value="0"></label>
+    <label class="sl">Xoay<input id="edRot" type="range" min="-45" max="45" step="1" value="0"></label>
+    <div class="sheet-actions">
+      <button id="edCancel" type="button" class="ghost">Hủy</button>
+      <button id="edReset" type="button" class="ghost">Đặt lại</button>
+      <button id="edDone" type="button">Lưu vào lớp</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var PINK = '#ff4fa3', FG = '#fbf4f7', MUTE = '#c3b4bf', LINE = '#3a3340', INK = '#0f0d11', DARK = '#1a1620';
+  var C_DRAG = '#ff7a45', C_LIFT = '#3ddc97', C_W = '#ffd23f', C_V = '#4cc9ff', C_PUSH = '#c39bff';
+  var SZ = 300, PAD = 18, BORDER = 10, STORE = 192, G = 9.8;
+  var $ = function (id) { return document.getElementById(id); };
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function fmt(n, d) {
+    if (d === undefined) d = 1;
+    if (!isFinite(n)) return '—';
+    var r = Math.round(n * Math.pow(10, d)) / Math.pow(10, d);
+    return r.toLocaleString('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function fmtN(n) { return n >= 1000 ? fmt(n, 0) : n >= 100 ? fmt(n, 0) : n >= 10 ? fmt(n, 1) : fmt(n, 2); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function niceStep(span, target) {
+    var raw = span / target, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+    return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p;
+  }
+  function padRange(lo, hi) {
+    if (hi - lo < 1e-9) { return [lo - 1, hi + 1]; }
+    var p = (hi - lo) * 0.08; return [lo - p, hi + p];
+  }
+  function lerp(a, b, k) { return a + (b - a) * k; }
+  function rr(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function setup(c) {
+    var dpr = window.devicePixelRatio || 1, r = c.getBoundingClientRect();
+    var w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    var ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, r.width, r.height);
+    return { ctx: ctx, W: r.width, H: r.height };
+  }
+  var FONT = '"Be Vietnam Pro", system-ui, sans-serif';
+  function label(ctx, text, x, y, color, size, align) {
+    ctx.font = '700 ' + (size || 17) + 'px ' + FONT;
+    ctx.textAlign = align || 'left'; ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(12,10,14,.9)';
+    ctx.strokeText(text, x, y); ctx.fillStyle = color; ctx.fillText(text, x, y);
+  }
+  /* mũi tên lực: từ (x,y) theo hướng (dx,dy) dài len px */
+  function force(ctx, x, y, dx, dy, len, color, text, o) {
+    o = o || {};
+    if (len < 2) return;
+    var n = Math.hypot(dx, dy) || 1; dx /= n; dy /= n;
+    var x2 = x + dx * len, y2 = y + dy * len, w = o.w || 7, h = Math.max(16, w * 2.6);
+    var a = Math.atan2(dy, dx);
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (o.dash) ctx.setLineDash([9, 7]);
+    ctx.strokeStyle = 'rgba(12,10,14,.85)'; ctx.lineWidth = w + 4;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2 - dx * h * 0.5, y2 - dy * h * 0.5); ctx.stroke();
+    ctx.strokeStyle = color; ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2 - dx * h * 0.5, y2 - dy * h * 0.5); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - h * Math.cos(a - 0.5), y2 - h * Math.sin(a - 0.5)); ctx.lineTo(x2 - h * Math.cos(a + 0.5), y2 - h * Math.sin(a + 0.5)); ctx.closePath();
+    ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = 'rgba(12,10,14,.85)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+    if (text) {
+      var side = o.side || (Math.abs(dy) > Math.abs(dx) ? 'r' : 'u');
+      var tx = x2, ty = y2;
+      if (side === 'r') { tx = x2 + 14; ty = y2 - dy * 6; label(ctx, text, tx, ty, color, o.size || 17, 'left'); }
+      else if (side === 'l') { label(ctx, text, x2 - 14, y2, color, o.size || 17, 'right'); }
+      else if (side === 'u') { label(ctx, text, x2, y2 - 18, color, o.size || 17, 'center'); }
+      else { label(ctx, text, x2, y2 + 20, color, o.size || 17, 'center'); }
+    }
+  }
+
+  /* ---------- Đồ thị ---------- */
+  function plot(c, o) {
+    var g = setup(c), ctx = g.ctx, W = g.W, H = g.H;
+    var ml = 62, mr = 20, mt = 16, mb = 42, pw = W - ml - mr, ph = H - mt - mb;
+    var x0 = o.xr[0], x1 = o.xr[1], y0 = o.yr[0], y1 = o.yr[1];
+    if (x1 - x0 < 1e-9) x1 = x0 + 1;
+    if (y1 - y0 < 1e-9) { y0 -= 1; y1 += 1; }
+    function TX(x) { return ml + (x - x0) / (x1 - x0) * pw; }
+    function TY(y) { return mt + (1 - (y - y0) / (y1 - y0)) * ph; }
+    ctx.font = '14px ' + FONT; ctx.lineWidth = 1;
+    var sy = niceStep(y1 - y0, 5), dy = sy >= 1 ? 0 : Math.ceil(-Math.log10(sy) - 1e-9);
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (var k = Math.ceil(y0 / sy - 1e-9); k * sy <= y1 + 1e-9; k++) {
+      var yy = k * sy, py = TY(yy);
+      ctx.strokeStyle = LINE; ctx.beginPath(); ctx.moveTo(ml, py); ctx.lineTo(ml + pw, py); ctx.stroke();
+      ctx.fillStyle = MUTE; ctx.fillText(fmt(yy, dy), ml - 8, py);
+    }
+    var sx = niceStep(x1 - x0, 6), dx = sx >= 1 ? 0 : Math.ceil(-Math.log10(sx) - 1e-9);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (var j = Math.ceil(x0 / sx - 1e-9); j * sx <= x1 + 1e-9; j++) {
+      var xx = j * sx, px = TX(xx);
+      ctx.strokeStyle = LINE; ctx.beginPath(); ctx.moveTo(px, mt); ctx.lineTo(px, mt + ph); ctx.stroke();
+      ctx.fillStyle = MUTE; ctx.fillText(fmt(xx, dx), px, mt + ph + 7);
+    }
+    ctx.fillStyle = MUTE; ctx.textAlign = 'right'; ctx.fillText(o.xl || '', ml + pw, mt + ph + 22);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(o.yl || '', 8, 0);
+    if (y0 < 0 && y1 > 0) { ctx.strokeStyle = MUTE; ctx.beginPath(); ctx.moveTo(ml, TY(0)); ctx.lineTo(ml + pw, TY(0)); ctx.stroke(); }
+    ctx.save(); ctx.beginPath(); ctx.rect(ml, mt, pw, ph); ctx.clip();
+    (o.series || []).forEach(function (s) {
+      ctx.strokeStyle = s.color; ctx.lineWidth = s.w || 4; ctx.lineJoin = 'round';
+      ctx.setLineDash(s.dash || []); ctx.beginPath();
+      s.pts.forEach(function (p, i) { if (i === 0) ctx.moveTo(TX(p[0]), TY(p[1])); else ctx.lineTo(TX(p[0]), TY(p[1])); });
+      ctx.stroke(); ctx.setLineDash([]);
+    });
+    if (o.vx !== undefined && o.vx !== null) {
+      ctx.setLineDash([5, 4]); ctx.strokeStyle = MUTE; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(TX(o.vx), mt); ctx.lineTo(TX(o.vx), mt + ph); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.restore();
+    (o.dots || []).forEach(function (d) {
+      ctx.fillStyle = d.color; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(TX(d.x), TY(d.y), 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    });
+  }
+
+  /* ---------- Sticker mặt học sinh ---------- */
+  var phCache = {};
+  function placeholder(initial, fill) {
+    var key = initial + fill;
+    if (phCache[key]) return phCache[key];
+    var c = document.createElement('canvas'); c.width = c.height = SZ;
+    var ctx = c.getContext('2d'), cx = SZ / 2, R = (SZ - 2 * PAD) / 2;
+    ctx.beginPath(); ctx.arc(cx, cx, R, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cx, R - BORDER, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill();
+    ctx.fillStyle = INK;
+    ctx.font = '800 ' + Math.round(R * 1.1) + 'px "Barlow Condensed", Impact, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(initial, cx, cx + 4);
+    phCache[key] = c; return c;
+  }
+  function shapePath(ctx, cx, cy, r, shape) {
+    if (shape === 'round') rr(ctx, cx - r, cy - r, 2 * r, 2 * r, r * 0.42);
+    else { ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); }
+  }
+  function newCrop() { return { zoom: 1, ox: 0, oy: 0, rot: 0, shape: 'circle' }; }
+  function makeSticker(img, cr) {
+    var c = document.createElement('canvas'); c.width = c.height = SZ;
+    var ctx = c.getContext('2d'), cx = SZ / 2, cy = SZ / 2, R = (SZ - 2 * PAD) / 2;
+    var iw = img.naturalWidth, ih = img.naturalHeight;
+    if (cr.shape === 'cutout') {
+      var t = document.createElement('canvas'); t.width = t.height = SZ;
+      var tc = t.getContext('2d');
+      tc.translate(cx + cr.ox * SZ / 2, cy + cr.oy * SZ / 2); tc.rotate(cr.rot * Math.PI / 180);
+      var k = (SZ - 2 * PAD - 2 * BORDER) / Math.max(iw, ih) * cr.zoom;
+      tc.scale(k, k); tc.drawImage(img, -iw / 2, -ih / 2);
+      var s = document.createElement('canvas'); s.width = s.height = SZ;
+      var sc = s.getContext('2d');
+      sc.drawImage(t, 0, 0); sc.globalCompositeOperation = 'source-in'; sc.fillStyle = '#fff'; sc.fillRect(0, 0, SZ, SZ);
+      for (var a = 0; a < 36; a++) { var ang = a / 36 * Math.PI * 2; ctx.drawImage(s, Math.cos(ang) * BORDER, Math.sin(ang) * BORDER); }
+      ctx.drawImage(t, 0, 0);
+      return c;
+    }
+    shapePath(ctx, cx, cy, R, cr.shape); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.save();
+    shapePath(ctx, cx, cy, R - BORDER, cr.shape); ctx.clip();
+    ctx.translate(cx, cy); ctx.rotate(cr.rot * Math.PI / 180);
+    var side = Math.min(iw, ih) / cr.zoom;
+    var sx = iw / 2 - cr.ox * iw / 2 - side / 2, sy = ih / 2 - cr.oy * ih / 2 - side / 2;
+    ctx.drawImage(img, sx, sy, side, side, -R, -R, 2 * R, 2 * R);
+    ctx.restore();
+    return c;
+  }
+  function stickerAt(ctx, cv, cx, cy, size, rot) {
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot || 0);
+    ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3;
+    ctx.drawImage(cv, -size / 2, -size / 2, size, size);
+    ctx.restore();
+  }
+
+  /* ---------- Lớp của em (dùng chung khóa với web các bài khác) ---------- */
+  var KEY = 'labcoten.lop.v1';
+  var R = [];
+  function demoSticker(name, hue) { return placeholder((name[0] || '?').toUpperCase(), 'hsl(' + hue + ',80%,70%)'); }
+  [['An', 335], ['Bình', 290], ['Chi', 20], ['Dũng', 200], ['Em', 160]].forEach(function (d, i) { R.push({ id: 'demo' + i, name: d[0], demo: true, cv: null, hue: d[1] }); });
+  function rosterGet(id) { for (var i = 0; i < R.length; i++) if (R[i].id === id) return R[i]; return null; }
+  function faceOf(r) { if (!r) return null; if (r.demo) return demoSticker(r.name, r.hue); return r.cv; }
+  function saveRoster() {
+    try { localStorage.setItem(KEY, JSON.stringify(R.filter(function (r) { return !r.demo; }).map(function (r) { return { id: r.id, name: r.name, png: r.png }; }))); return true; }
+    catch (e) { return false; }
+  }
+  function loadRoster() {
+    try {
+      var j = JSON.parse(localStorage.getItem(KEY) || '[]');
+      if (!Array.isArray(j) || !j.length) return;
+      R = R.filter(function (r) { return !r.demo; });
+      j.forEach(function (e) {
+        if (!e || !e.png || !e.name) return;
+        var r = { id: String(e.id), name: String(e.name), png: e.png, demo: false, cv: null };
+        var im = new Image(); im.onload = function () { r.cv = im; drawAvatars(); draw(); }; im.src = e.png;
+        R.push(r);
+      });
+    } catch (e) { /* bộ nhớ không dùng được */ }
+  }
+  function renderRoster() {
+    var ul = $('roster'); ul.innerHTML = '';
+    R.forEach(function (r) {
+      var li = document.createElement('li');
+      var im = document.createElement('img'); im.alt = '';
+      im.src = r.demo ? demoSticker(r.name, r.hue).toDataURL() : r.png;
+      var nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = r.name + (r.demo ? ' (mẫu)' : '');
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'ghost'; del.textContent = 'Xóa'; del.setAttribute('aria-label', 'Xóa ' + r.name);
+      del.addEventListener('click', function () { R = R.filter(function (x) { return x !== r; }); saveRoster(); afterRoster(); });
+      li.appendChild(im); li.appendChild(nm); li.appendChild(del); ul.appendChild(li);
+    });
+  }
+
+  /* ================= Lõi mô phỏng dùng chung ================= */
+  var DT = 0.02, TAU = Math.PI * 2;
+  function pack(T, fn) {
+    var n = Math.round(T / DT), a = [];
+    for (var i = 0; i <= n; i++) { var s = fn(i * DT, i); s.t = i * DT; a.push(s); }
+    return { T: T, n: n, a: a };
+  }
+  function at(res, t) {
+    var f = clamp(t / DT, 0, res.n), i = Math.floor(f), k = f - i, a = res.a[i], b = res.a[Math.min(i + 1, res.n)], o = {};
+    for (var key in a) o[key] = (typeof a[key] === 'number' && typeof b[key] === 'number') ? lerp(a[key], b[key], k) : a[key];
+    return o;
+  }
+  function series(res, key, color, name, step, dash) {
+    var pts = [], st = step || 2;
+    for (var i = 0; i <= res.n; i += st) pts.push([res.a[i].t, res.a[i][key]]);
+    var last = res.a[res.n]; if (pts[pts.length - 1][0] < last.t) pts.push([last.t, last[key]]);
+    return { color: color, pts: pts, name: name, dash: dash };
+  }
+  function hline(x0, x1, y, color, name) { return { color: color, pts: [[x0, y], [x1, y]], dash: [8, 6], w: 2.5, name: name, nodot: true }; }
+  function curve(x0, x1, n, fn, color, name, o) {
+    var pts = []; for (var i = 0; i <= n; i++) { var x = x0 + (x1 - x0) * i / n; pts.push([x, fn(x)]); }
+    var s = { color: color, pts: pts, name: name, nodot: true }; if (o) for (var k in o) s[k] = o[k]; return s;
+  }
+  var SCENES = [];
+  function addScene(o) { SCENES.push(o); }
+  function smooth01(x) { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); }
+  function hexRgb(h) { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
+  function mixC(a, b, k) { var A = hexRgb(a), B = hexRgb(b); return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(A[i] + (B[i] - A[i]) * k); }).join(',') + ')'; }
+  /* sticker nhanh, không đổ bóng (dùng khi vẽ nhiều mặt cùng lúc) */
+  function face2(ctx, cv, x, y, size) { ctx.drawImage(cv, x - size / 2, y - size / 2, size, size); }
+  function bg(ctx, W, H, a, b) { var g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, a || '#17121b'); g.addColorStop(1, b || '#0f0d11'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+  function dashV(ctx, x, y0, y1, color) { ctx.save(); ctx.setLineDash([5, 5]); ctx.strokeStyle = color || MUTE; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke(); ctx.restore(); }
+  function dashH(ctx, x0, x1, y, color) { ctx.save(); ctx.setLineDash([6, 6]); ctx.strokeStyle = color || LINE; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.restore(); }
+  /* mũi tên hai đầu (↕ hoặc ↔) cho biên độ dao động */
+  function dbl(ctx, x0, y0, x1, y1, color) {
+    var a = Math.atan2(y1 - y0, x1 - x0), h = 9;
+    ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    [[x1, y1, a], [x0, y0, a + Math.PI]].forEach(function (e) {
+      ctx.beginPath(); ctx.moveTo(e[0], e[1]); ctx.lineTo(e[0] - h * Math.cos(e[2] - 0.45), e[1] - h * Math.sin(e[2] - 0.45)); ctx.lineTo(e[0] - h * Math.cos(e[2] + 0.45), e[1] - h * Math.sin(e[2] + 0.45)); ctx.closePath(); ctx.fill();
+    });
+    ctx.restore();
+  }
+  function chipTxt(ctx, text, x, y, color, align) {
+    ctx.font = '700 15px ' + FONT; var w = ctx.measureText(text).width + 16;
+    var x0 = align === 'right' ? x - w : align === 'center' ? x - w / 2 : x;
+    ctx.fillStyle = 'rgba(12,10,14,.82)'; rr(ctx, x0, y - 14, w, 28, 8); ctx.fill();
+    ctx.strokeStyle = color || LINE; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = color || FG; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(text, x0 + 8, y + 1);
+  }
+  function arrowR(ctx, x0, x1, y, color, text) { force(ctx, x0, y, 1, 0, x1 - x0, color, null, { w: 5 }); if (text) label(ctx, text, x0, y - 18, color, 15, 'left'); }
+  function pi2(x) { return fmt(x, 2).replace(/,00$/, '').replace(/(,\d)0$/, '$1') + 'π'; }
+  function fmtSci(x, d) {
+    if (!isFinite(x) || x === 0) return fmt(x, d);
+    var e = Math.floor(Math.log10(Math.abs(x))), m = x / Math.pow(10, e), sup = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+    return fmt(m, d === undefined ? 2 : d) + '·10' + String(e).split('').map(function (c) { return sup[c]; }).join('');
+  }
+
+
+  /* ================= Sóng cơ (Vật lí 11, KNTT: Bài 8, 9, 12, 13) — mô hình đơn giản hóa để học ================= */
+  var PAGE_TITLE = 'Sóng cơ';
+  var GROUPS = [{ id: 'truyen', box: 'gA' }, { id: 'giaothoa', box: 'gB' }];
+  var C_WATER = '#4cc9ff';
+  var SOUND = [['Không khí', 340], ['Nước', 1500], ['Thép', 6000]];
+
+  /* ---------- 1. Sóng trên dây (Bài 8: mô tả sóng) ---------- */
+  var ROPE_L = 4; /* m, chiều dài đoạn dây nhìn thấy */
+  function uRope(p, x, t) { var t0 = x / p.v; return t < t0 ? 0 : p.A * Math.sin(TAU * p.f * (t - t0)); }
+  function lyRope(W, H) { var x0 = clamp(W * 0.17, 74, 150), x1 = W - 26; return { x0: x0, x1: x1, y0: H * 0.47, sx: (x1 - x0) / ROPE_L, sy: Math.min(H * 0.018, 9) }; }
+  function simRope(p) {
+    var r = pack(12, function (t) { return { uO: uRope(p, 0, t), uM: uRope(p, p.xM, t) }; });
+    r.lam = p.v / p.f; r.tM = p.xM / p.v; return r;
+  }
+  function drawRope(ctx, W, H, p, s, f, st) {
+    var L = lyRope(W, H), t = st.t, X = function (x) { return L.x0 + x * L.sx; }, Y = function (u) { return L.y0 - u * L.sy; };
+    bg(ctx, W, H);
+    dashH(ctx, L.x0, L.x1, L.y0);
+    /* thước */
+    var yr = L.y0 + 15 * L.sy + 34;
+    ctx.strokeStyle = MUTE; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X(0), yr); ctx.lineTo(X(ROPE_L), yr); ctx.stroke();
+    for (var m = 0; m <= ROPE_L + 1e-9; m += 0.5) { var xx = X(m); ctx.beginPath(); ctx.moveTo(xx, yr - (m % 1 === 0 ? 9 : 5)); ctx.lineTo(xx, yr); ctx.stroke(); if (m % 1 === 0 || W > 700) label(ctx, fmt(m, m % 1 === 0 ? 0 : 1), xx, yr + 14, MUTE, 13, 'center'); }
+    label(ctx, 'x (m)', X(ROPE_L), yr - 20, MUTE, 13, 'right');
+    /* đầu sóng */
+    var front = p.v * t;
+    if (front < ROPE_L) { dashV(ctx, X(front), L.y0 - 70, L.y0 + 70, C_W); label(ctx, 'sóng tới đây', X(front), L.y0 - 82, C_W, 14, 'center'); }
+    /* bước sóng λ: hai đỉnh sóng liền kề */
+    var lam = p.v / p.f, lim = Math.min(front, ROPE_L);
+    for (var n = 0; n < 60; n++) {
+      var xa = front - lam * (0.25 + n), xb = xa - lam;
+      if (xa <= lim && xb >= 0) {
+        var yb = L.y0 - p.A * L.sy - 30;
+        dbl(ctx, X(xb), yb, X(xa), yb, C_LIFT); label(ctx, 'λ = ' + fmt(lam, 2) + ' m', (X(xa) + X(xb)) / 2, yb - 16, C_LIFT, 15, 'center');
+        dashV(ctx, X(xa), yb, Y(p.A), C_LIFT); dashV(ctx, X(xb), yb, Y(p.A), C_LIFT);
+        break;
+      }
+    }
+    /* sợi dây */
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    [[DARK, 9], [PINK, 5]].forEach(function (c) { ctx.strokeStyle = c[0]; ctx.lineWidth = c[1]; ctx.beginPath(); for (var x = 0; x <= ROPE_L + 1e-9; x += 0.02) { var px = X(x), py = Y(uRope(p, x, t)); if (x === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); } ctx.stroke(); });
+    ctx.fillStyle = '#fff'; for (var b = 0.1; b < ROPE_L; b += 0.1) { ctx.beginPath(); ctx.arc(X(b), Y(uRope(p, b, t)), 2.6, 0, TAU); ctx.fill(); }
+    /* nguồn O: bạn cầm đầu dây */
+    var yO = Y(uRope(p, 0, t)), sz = clamp(W * 0.07, 46, 72);
+    ctx.fillStyle = '#e8d7e2'; rr(ctx, X(0) - 9, yO - 13, 18, 26, 6); ctx.fill();
+    stickerAt(ctx, f[0].cv, X(0) - sz * 0.62, yO - sz * 0.15, sz);
+    label(ctx, 'O', X(0) + 2, yO + 30, FG, 16, 'center');
+    /* điểm M */
+    var xm = X(p.xM), ym = Y(uRope(p, p.xM, t)), sm = sz * 0.72;
+    dashV(ctx, xm, L.y0 - p.A * L.sy - 6, L.y0 + p.A * L.sy + 6, C_V);
+    if (t >= p.xM / p.v) dbl(ctx, xm + sm * 0.75, L.y0 - p.A * L.sy, xm + sm * 0.75, L.y0 + p.A * L.sy, C_V);
+    stickerAt(ctx, f[1].cv, xm, ym, sm);
+    label(ctx, 'M', xm, ym + sm * 0.5 + 14, C_V, 16, 'center');
+    arrowR(ctx, L.x1 - 190, L.x1 - 40, 30, FG, 'phương truyền sóng');
+  }
+  addScene({
+    id: 'day', group: 'truyen', chip: 'Sóng trên dây', title: ['Sóng ', 'trên sợi dây'], chars: ['Bạn cầm đầu dây (nguồn O)', 'Phần tử M trên dây'], speed: 1, loop: false,
+    hint: 'Kéo hoặc chạm vào sợi dây để đặt điểm M', drag: dragRope,
+    blurb: 'Bạn ở đầu dây dao động lên xuống. Dao động lan dần dọc sợi dây với tốc độ v. Mỗi phần tử trên dây chỉ dao động tại chỗ, không đi theo sóng.',
+    params: [
+      { k: 'f', label: 'Tần số f', type: 'range', min: 0.5, max: 2.5, step: 0.1, def: 1, unit: ' Hz' },
+      { k: 'A', label: 'Biên độ A', type: 'range', min: 3, max: 15, step: 1, def: 8, unit: ' cm' },
+      { k: 'v', label: 'Tốc độ truyền sóng v', type: 'range', min: 0.5, max: 3, step: 0.1, def: 1.5, unit: ' m/s' },
+      { k: 'xM', label: 'Vị trí điểm M (OM)', type: 'range', min: 0.2, max: 3.8, step: 0.05, def: 1.5, unit: ' m', live: true, d: 2 }],
+    sim: simRope, draw: drawRope,
+    modes: [['u', 'Li độ của O và M – thời gian'], ['x', 'Hình dạng sợi dây lúc này']],
+    graph: function (r, p, m, s, t) {
+      var yr = [-p.A * 1.3, p.A * 1.3];
+      if (m === 'u') return { s: [series(r, 'uO', PINK, 'Nguồn O'), series(r, 'uM', C_V, 'Điểm M')], yl: 'u (cm)', yr: yr };
+      return { s: [curve(0, ROPE_L, 200, function (x) { return uRope(p, x, t); }, PINK, 'Sợi dây lúc t = ' + fmt(t, 1) + ' s')], xr: [0, ROPE_L], xl: 'x (m)', yl: 'u (cm)', yr: yr, dots: [{ x: p.xM, y: uRope(p, p.xM, t), color: C_V }] };
+    },
+    reads: function (p, s, r) { return [['Bước sóng λ', fmt(r.lam, 2) + ' m', 'vel'], ['Chu kì T', fmt(1 / p.f, 2) + ' s', 'push'], ['Lệch pha O và M', pi2(2 * p.xM / r.lam), 'drag'], ['Li độ của M', fmt(s.uM, 1) + ' cm', 'weight']]; },
+    meet: function (p, s, r, t) {
+      if (t < r.tM) return '<strong>Sóng chưa tới M:</strong> M còn đứng yên. Sóng tới M sau t = OM / v = ' + fmt(r.tM, 2) + ' s.';
+      var q = p.xM / r.lam, n = Math.round(q), h = Math.floor(q) + 0.5;
+      if (Math.abs(q - n) < 0.04) return '<strong>M dao động cùng pha với O</strong> vì OM = ' + n + 'λ (số nguyên lần bước sóng).';
+      if (Math.abs(q - h) < 0.04) return '<strong>M dao động ngược pha với O</strong> vì OM = ' + fmt(h, 1) + 'λ (số bán nguyên lần bước sóng).';
+      return '<strong>M dao động trễ pha hơn O</strong> một góc Δφ = 2π·OM/λ ≈ ' + pi2(2 * q) + '. Hạt M chỉ lên xuống tại chỗ.';
+    },
+    formula: '<code>λ = v · T = v / f</code><small>Bước sóng λ: quãng đường sóng truyền được trong một chu kì.</small><code>Δφ = 2π · d / λ</code><small>Độ lệch pha của hai điểm cách nhau d trên cùng phương truyền sóng.</small>',
+    ratios: function (p, r) {
+      return [
+        { t: 'Đổi tần số (v = ' + fmt(p.v, 1) + ' m/s)', rows: [0.5, 1, 2].map(function (f) { return { k: 'f = ' + fmt(f, 1) + ' Hz', v: 'λ = ' + fmt(p.v / f, 2) + ' m', r: 'T = ' + fmt(1 / f, 2) + ' s', cur: Math.abs(f - p.f) < 1e-6 }; }) },
+        { t: 'Đổi tốc độ truyền (f = ' + fmt(p.f, 1) + ' Hz)', rows: [0.5, 1, 2, 3].map(function (v) { return { k: 'v = ' + fmt(v, 1) + ' m/s', v: 'λ = ' + fmt(v / p.f, 2) + ' m', r: '×' + fmt(v / p.v, 2), cur: Math.abs(v - p.v) < 1e-6 }; }) },
+        { t: 'Điểm dao động cùng pha / ngược pha với O', rows: [1, 2, 3].map(function (k) { var a = k * r.lam, b = (k - 0.5) * r.lam; return { k: 'k = ' + k, v: 'cùng pha: ' + (a <= ROPE_L ? fmt(a, 2) + ' m' : '—'), r: 'ngược: ' + (b <= ROPE_L ? fmt(b, 2) + ' m' : '—'), cur: false }; }) }];
+    },
+    tips: ['Bấm Chạy và nhìn M: M bắt đầu dao động lúc nào? So sánh với OM / v.', 'Đặt M cách O đúng một bước sóng (xem bảng bên dưới): M dao động thế nào so với bạn cầm dây?', 'Tăng gấp đôi tần số: bước sóng thay đổi ra sao? Tốc độ truyền có đổi không?', 'Nhìn đường nét đứt qua M: phần tử M có bị sóng kéo sang phải không?']
+  });
+  function dragRope(x, y, W, H, p) { var L = lyRope(W, H); if (y < L.y0 - 140 || y > L.y0 + 140) return false; p.xM = Math.round(clamp((x - L.x0) / L.sx, 0.2, 3.8) * 20) / 20; return true; }
+
+  /* ---------- 2. Sóng ngang, sóng dọc (Bài 9) ---------- */
+  var ND_X = 1.5; /* m, phần tử được đánh dấu */
+  function simND(p) { var k = TAU * p.f / p.v; return pack(10, function (t) { return { u: p.A * Math.sin(TAU * p.f * t - k * ND_X) }; }); }
+  function drawND(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H);
+    var t = st.t, x0 = 34, x1 = W - 26, sx = (x1 - x0) / 4, X = function (x) { return x0 + x * sx; }, k = TAU * p.f / p.v, w = TAU * p.f;
+    var lanes = p.kind === 'both' ? [['ngang', H * 0.3], ['doc', H * 0.73]] : [[p.kind, H * 0.52]];
+    var lamPx = (p.v / p.f) * sx;
+    lanes.forEach(function (ln, li) {
+      var yc = ln[1], sz = clamp(W * 0.05, 36, 52);
+      if (ln[0] === 'ngang') {
+        label(ctx, 'Sóng ngang: phần tử dao động vuông góc với phương truyền (dây)', x0, yc - 92, C_V, 15, 'left');
+        var sy = Math.min(5, H * 0.011);
+        dashH(ctx, x0, x1, yc);
+        ctx.strokeStyle = 'rgba(255,79,163,.55)'; ctx.lineWidth = 2.5; ctx.beginPath();
+        for (var x = 0; x <= 4.0001; x += 0.02) { var py = yc - p.A * sy * Math.sin(w * t - k * x); if (x === 0) ctx.moveTo(X(x), py); else ctx.lineTo(X(x), py); } ctx.stroke();
+        for (var b = 0; b <= 4.0001; b += 0.1) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(X(b), yc - p.A * sy * Math.sin(w * t - k * b), 4, 0, TAU); ctx.fill(); }
+        var ym = yc - p.A * sy * Math.sin(w * t - k * ND_X);
+        dashV(ctx, X(ND_X), yc - p.A * sy - 8, yc + p.A * sy + 8, C_V);
+        dbl(ctx, X(ND_X) + sz * 0.7, yc - p.A * sy, X(ND_X) + sz * 0.7, yc + p.A * sy, C_V);
+        stickerAt(ctx, f[0].cv, X(ND_X), ym, sz);
+      } else {
+        label(ctx, 'Sóng dọc: phần tử dao động dọc theo phương truyền (lò xo, âm thanh)', x0, yc - 38 - sz * 1.45 - 14, C_W, 15, 'left');
+        var ax = Math.min(p.A * 4, 0.8 * lamPx / TAU), hh = 38;
+        ctx.lineWidth = 3;
+        for (var c = 0; c <= 4.0001; c += 0.08) {
+          var px = X(c) + ax * Math.sin(w * t - k * c);
+          ctx.strokeStyle = 'rgba(255,210,63,.75)'; ctx.beginPath(); ctx.moveTo(px, yc - hh); ctx.lineTo(px, yc + hh); ctx.stroke();
+        }
+        /* vùng nén, vùng giãn */
+        var ph = (w * t) / k;
+        for (var n = -3; n < 12; n++) {
+          var xc = ph - n * (TAU / k), xr = xc + Math.PI / k;
+          if (xc > 0.15 && xc < 3.85) label(ctx, 'nén', X(xc), yc + hh + 16, FG, 14, 'center');
+          if (xr > 0.15 && xr < 3.85) label(ctx, 'giãn', X(xr), yc + hh + 16, MUTE, 14, 'center');
+        }
+        var pm = X(ND_X) + ax * Math.sin(w * t - k * ND_X);
+        ctx.strokeStyle = PINK; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(pm, yc - hh); ctx.lineTo(pm, yc + hh); ctx.stroke();
+        dashV(ctx, X(ND_X), yc - hh - 8, yc + hh + 4, C_W);
+        dbl(ctx, X(ND_X) - ax, yc - hh - sz * 0.95, X(ND_X) + ax, yc - hh - sz * 0.95, C_W);
+        stickerAt(ctx, f[1].cv, pm, yc - hh - sz * 0.42, sz);
+      }
+    });
+    arrowR(ctx, W - 210, W - 40, H - 24, FG, 'phương truyền sóng');
+  }
+  addScene({
+    id: 'ngang-doc', group: 'truyen', chip: 'Sóng ngang, sóng dọc', title: ['Sóng ngang ', '& sóng dọc'], chars: ['Phần tử trên dây', 'Vòng lò xo'], speed: 1, loop: true,
+    hint: 'So sánh hướng dao động của hai bạn với hướng truyền sóng',
+    blurb: 'Hai sóng cùng truyền sang phải. Ở sóng ngang, phần tử dao động lên xuống. Ở sóng dọc, phần tử dao động qua lại theo phương truyền, tạo ra những vùng nén và giãn nối tiếp nhau.',
+    params: [
+      { k: 'kind', label: 'Hiện', type: 'seg', opts: [['both', 'Cả hai'], ['ngang', 'Sóng ngang'], ['doc', 'Sóng dọc']], def: 'both' },
+      { k: 'f', label: 'Tần số f', type: 'range', min: 0.5, max: 2, step: 0.1, def: 1, unit: ' Hz' },
+      { k: 'A', label: 'Biên độ A', type: 'range', min: 2, max: 10, step: 1, def: 6, unit: ' cm' },
+      { k: 'v', label: 'Tốc độ truyền v', type: 'range', min: 0.5, max: 2, step: 0.1, def: 1.2, unit: ' m/s' }],
+    sim: simND, draw: drawND,
+    modes: [['u', 'Li độ phần tử được đánh dấu – thời gian'], ['x', 'Li độ các phần tử dọc phương truyền']],
+    graph: function (r, p, m, s, t) {
+      var yr = [-p.A * 1.3, p.A * 1.3], k = TAU * p.f / p.v;
+      if (m === 'u') return { s: [series(r, 'u', PINK, 'Li độ của phần tử ở x = ' + fmt(ND_X, 1) + ' m')], yl: 'u (cm)', yr: yr };
+      return { s: [curve(0, 4, 200, function (x) { return p.A * Math.sin(TAU * p.f * t - k * x); }, PINK, 'Li độ theo vị trí lúc t = ' + fmt(t, 1) + ' s')], xr: [0, 4], xl: 'x (m)', yl: 'u (cm)', yr: yr, dots: [{ x: ND_X, y: s.u, color: C_V }] };
+    },
+    reads: function (p, s) { return [['Bước sóng λ', fmt(p.v / p.f, 2) + ' m', 'vel'], ['Chu kì T', fmt(1 / p.f, 2) + ' s', 'push'], ['Sóng ngang', '⊥ phương truyền', 'drag'], ['Sóng dọc', '∥ phương truyền', 'weight']]; },
+    meet: function () { return '<strong>Sóng ngang</strong> (sóng trên dây): phần tử dao động vuông góc với phương truyền. <strong>Sóng dọc</strong> (lò xo, âm thanh trong không khí): phần tử dao động theo phương truyền. Cả hai đều chỉ truyền dao động và năng lượng, không truyền phần tử.'; },
+    formula: '<code>λ = v / f</code><small>Hai vùng nén liền kề (hoặc hai đỉnh sóng liền kề) cách nhau một bước sóng. Âm thanh trong không khí là sóng dọc.</small>',
+    ratios: function (p) {
+      return [
+        { t: 'Âm thanh 440 Hz (nốt La) trong các môi trường', rows: SOUND.map(function (o) { return { k: o[0], v: 'v ≈ ' + fmt(o[1], 0) + ' m/s', r: 'λ ≈ ' + fmt(o[1] / 440, 2) + ' m', cur: false }; }) },
+        { t: 'Đổi tần số (v = ' + fmt(p.v, 1) + ' m/s)', rows: [0.5, 1, 2].map(function (f) { return { k: 'f = ' + fmt(f, 1) + ' Hz', v: 'λ = ' + fmt(p.v / f, 2) + ' m', r: '', cur: Math.abs(f - p.f) < 1e-6 }; }) }];
+    },
+    tips: ['Nhìn hai bạn được đánh dấu: một bạn đi lên xuống, một bạn đi qua lại. Ai thuộc sóng ngang?', 'Đếm khoảng cách giữa hai vùng “nén” liền kề rồi so với λ.', 'Vì sao âm thanh truyền được trong không khí, nước, thép nhưng không truyền được trong chân không?', 'Tốc độ âm trong thép lớn gấp mấy lần trong không khí (xem bảng)?']
+  });
+
+  /* ---------- 3. Phao trên mặt nước (Bài 9: sự truyền năng lượng) ---------- */
+  function ampAt(p, x) { return p.dec ? p.A * Math.sqrt(0.5 / Math.max(x, 0.25)) : p.A; }
+  function uWater(p, x, t) { var t0 = x / p.v; return t < t0 ? 0 : ampAt(p, x) * Math.sin(TAU * p.f * (t - t0)); }
+  function buoys(p) { return [1, 1 + p.gap, 1 + 2 * p.gap]; }
+  function simWater(p) { var b = buoys(p); return pack(12, function (t) { return { u1: uWater(p, b[0], t), u2: uWater(p, b[1], t), u3: uWater(p, b[2], t) }; }); }
+  function drawWater(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H, '#141020', '#0e0c12');
+    var t = st.t, x0 = clamp(W * 0.1, 50, 90), x1 = W - 20, sx = (x1 - x0) / 4, y0 = H * 0.5, sy = Math.min(6, H * 0.012);
+    var X = function (x) { return x0 + x * sx; }, Y = function (u) { return y0 - u * sy; };
+    /* nước */
+    ctx.beginPath(); ctx.moveTo(0, H); ctx.lineTo(0, Y(uWater(p, 0, t)));
+    for (var x = 0; x <= 4.0001; x += 0.02) ctx.lineTo(X(x), Y(uWater(p, x, t)));
+    ctx.lineTo(W, Y(uWater(p, 4, t))); ctx.lineTo(W, H); ctx.closePath();
+    var g = ctx.createLinearGradient(0, y0 - 40, 0, H); g.addColorStop(0, 'rgba(76,201,255,.45)'); g.addColorStop(1, 'rgba(20,40,70,.25)'); ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = C_WATER; ctx.lineWidth = 3; ctx.beginPath();
+    for (var x2 = 0; x2 <= 4.0001; x2 += 0.02) { if (x2 === 0) ctx.moveTo(X(x2), Y(uWater(p, x2, t))); else ctx.lineTo(X(x2), Y(uWater(p, x2, t))); } ctx.stroke();
+    /* cần rung tạo sóng */
+    var ys = Y(uWater(p, 0, t));
+    ctx.strokeStyle = '#e8d7e2'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(X(0), ys - 90); ctx.lineTo(X(0), ys + 6); ctx.stroke();
+    label(ctx, 'nguồn sóng', X(0), ys - 104, FG, 14, 'center');
+    /* ba phao */
+    var b = buoys(p), sz = clamp(W * 0.055, 38, 56);
+    b.forEach(function (bx, i) {
+      if (bx > 3.9) return;
+      var u = uWater(p, bx, t), px = X(bx), py = Y(u), A = ampAt(p, bx);
+      dashV(ctx, px, y0 - 120, y0 + 60, MUTE);
+      ctx.fillStyle = [PINK, C_W, C_LIFT][i]; ctx.beginPath(); ctx.ellipse(px, py + 4, sz * 0.55, sz * 0.22, 0, 0, TAU); ctx.fill();
+      stickerAt(ctx, f[i].cv, px, py - sz * 0.42, sz);
+      if (t >= bx / p.v) dbl(ctx, px + sz * 0.75, y0 - A * sy, px + sz * 0.75, y0 + A * sy, [PINK, C_W, C_LIFT][i]);
+      chipTxt(ctx, 'A = ' + fmt(A, 1) + ' cm', px, y0 + 92 + (i % 2) * 34, [PINK, C_W, C_LIFT][i], 'center');
+    });
+    arrowR(ctx, W - 210, W - 40, 30, FG, 'năng lượng truyền đi');
+    label(ctx, 'Đường nét đứt: chỗ đứng yên ban đầu của phao', 16, H - 20, MUTE, 14, 'left');
+  }
+  addScene({
+    id: 'phao', group: 'truyen', chip: 'Phao trên mặt nước', title: ['Phao ', 'nhấp nhô'], chars: ['Phao 1', 'Phao 2', 'Phao 3'], speed: 1, loop: false,
+    hint: 'Phao có bị sóng đẩy ra xa không? Nhìn đường nét đứt',
+    blurb: 'Sóng nước lan ra từ nguồn. Ba bạn ngồi trên ba chiếc phao: phao chỉ nhấp nhô tại chỗ. Sóng mang năng lượng đi, không mang phao đi. Càng xa nguồn, năng lượng trải ra càng rộng nên phao dao động càng yếu.',
+    params: [
+      { k: 'f', label: 'Tần số f', type: 'range', min: 0.5, max: 2, step: 0.1, def: 0.8, unit: ' Hz' },
+      { k: 'A', label: 'Biên độ gần nguồn', type: 'range', min: 4, max: 12, step: 1, def: 9, unit: ' cm' },
+      { k: 'v', label: 'Tốc độ truyền v', type: 'range', min: 0.5, max: 2, step: 0.1, def: 1, unit: ' m/s' },
+      { k: 'gap', label: 'Khoảng cách giữa các phao', type: 'range', min: 0.5, max: 1.4, step: 0.1, def: 1, unit: ' m' },
+      { k: 'dec', label: 'Kiểu sóng', type: 'seg', opts: [[1, 'Sóng tròn (yếu dần)'], [0, 'Bỏ qua suy giảm']], def: 1 }],
+    sim: simWater, draw: drawWater,
+    modes: [['u', 'Li độ ba phao – thời gian'], ['x', 'Mặt nước lúc này']],
+    graph: function (r, p, m, s, t) {
+      var yr = [-p.A * 1.25, p.A * 1.25], b = buoys(p);
+      if (m === 'u') return { s: [series(r, 'u1', PINK, 'Phao 1'), series(r, 'u2', C_W, 'Phao 2'), series(r, 'u3', C_LIFT, 'Phao 3')], yl: 'u (cm)', yr: yr };
+      return { s: [curve(0, 4, 200, function (x) { return uWater(p, x, t); }, C_WATER, 'Mặt nước lúc t = ' + fmt(t, 1) + ' s')], xr: [0, 4], xl: 'x (m)', yl: 'u (cm)', yr: yr, dots: b.filter(function (x) { return x <= 4; }).map(function (x, i) { return { x: x, y: uWater(p, x, t), color: [PINK, C_W, C_LIFT][i] }; }) };
+    },
+    reads: function (p) { var b = buoys(p), A1 = ampAt(p, b[0]), A3 = ampAt(p, b[2]); return [['Biên độ phao 1', fmt(A1, 1) + ' cm', 'drag'], ['Biên độ phao 3', fmt(A3, 1) + ' cm', 'lift'], ['Năng lượng phao 3 / phao 1', '×' + fmt(A3 * A3 / (A1 * A1), 2), 'weight'], ['Bước sóng λ', fmt(p.v / p.f, 2) + ' m', 'vel']]; },
+    meet: function (p, s, r, t) {
+      var b = buoys(p);
+      if (t < b[0] / p.v) return '<strong>Sóng chưa tới phao 1.</strong> Ba phao đang nằm yên.';
+      if (t < Math.min(b[2], 3.9) / p.v) return '<strong>Sóng đang lan ra:</strong> phao gần nguồn dao động trước, phao xa dao động sau.';
+      return '<strong>Cả ba phao chỉ nhấp nhô quanh vạch nét đứt:</strong> sóng truyền năng lượng, không truyền vật chất.' + (p.dec ? ' Năng lượng tỉ lệ với A², nên phao xa nhận ít năng lượng hơn.' : '');
+    },
+    formula: '<code>I = E / (S · Δt)</code><small>Cường độ sóng I: năng lượng sóng truyền qua một đơn vị diện tích vuông góc với phương truyền trong một đơn vị thời gian. Năng lượng dao động tỉ lệ với A².</small>',
+    ratios: function (p) {
+      var A0 = ampAt(p, 0.5);
+      return [{ t: 'Sóng tròn: càng xa nguồn càng yếu', rows: [0.5, 1, 2, 4].map(function (x) { var a = p.A * Math.sqrt(0.5 / x); return { k: 'cách nguồn ' + fmt(x, 1) + ' m', v: 'A ≈ ' + fmt(a, 1) + ' cm', r: 'năng lượng ×' + fmt(a * a / (p.A * p.A), 2), cur: false }; }) },
+        { t: 'Gấp đôi biên độ', rows: [1, 2, 3].map(function (k) { return { k: 'A ×' + k, v: 'năng lượng ×' + (k * k), r: '', cur: k === 1 }; }) }];
+    },
+    tips: ['Bấm Chạy: phao nào dao động trước? Vì sao?', 'Nhìn ba đường nét đứt: phao có bị đẩy ra xa nguồn không?', 'Đổi sang “Bỏ qua suy giảm”: biên độ ba phao thay đổi thế nào? Thực tế sóng nước giống trường hợp nào hơn?', 'Năng lượng sóng tỉ lệ với A². Phao 3 nhận năng lượng bằng bao nhiêu phần phao 1?']
+  });
+
+  /* ---------- 4. Giao thoa sóng nước (Bài 12) ---------- */
+  var GT_WIDE = { x0: -14, x1: 14, y0: -8, y1: 10 }, GT_TALL = { x0: -9.5, x1: 9.5, y0: -9, y1: 15 }, GT = GT_WIDE, gtCache = {};
+  function gtView(W, H) { GT = W / H < 1.05 ? GT_TALL : GT_WIDE; return GT; }
+  function lyGT(W, H) { gtView(W, H); var s = Math.min((W - 16) / (GT.x1 - GT.x0), (H - 16) / (GT.y1 - GT.y0)), w = s * (GT.x1 - GT.x0), h = s * (GT.y1 - GT.y0); return { s: s, l: (W - w) / 2, top: (H - h) / 2, w: w, h: h }; }
+  function gtLam(p) { return p.v / p.f; }
+  function gtD(p, x, y) { var c = p.d / 2; return [Math.hypot(x + c, y), Math.hypot(x - c, y)]; }
+  function gtAmp(p, d1, d2) { return 2 * Math.abs(Math.cos((TAU * (d2 - d1) / gtLam(p) - p.ph * Math.PI) / 2)); }
+  function simGT(p) {
+    var lam = gtLam(p), dd = gtD(p, p.xM, p.yM), k = TAU / lam;
+    var r = pack(6, function (t) { var a = TAU * t, u1 = Math.cos(a - k * dd[0]), u2 = Math.cos(a - k * dd[1] + p.ph * Math.PI); return { u1: u1, u2: u2, uM: u1 + u2 }; });
+    r.lam = lam; r.d1 = dd[0]; r.d2 = dd[1]; r.aM = gtAmp(p, dd[0], dd[1]); return r;
+  }
+  function countFringes(p) {
+    var lam = gtLam(p), mx = 0, mn = 0;
+    for (var k = -60; k <= 60; k++) { var a = (k + (p.ph ? 0.5 : 0)) * lam, b = (k + (p.ph ? 0 : 0.5)) * lam; if (Math.abs(a) < p.d - 1e-9) mx++; if (Math.abs(b) < p.d - 1e-9) mn++; }
+    return { mx: mx, mn: mn };
+  }
+  function drawGT(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H);
+    var L = lyGT(W, H), lam = gtLam(p), kk = TAU / lam, ph = TAU * st.t;
+    var X = function (x) { return L.l + (x - GT.x0) * L.s; }, Y = function (y) { return L.top + (GT.y1 - y) * L.s; };
+    var cell = W < 600 ? 3 : 4, gw = Math.max(40, Math.round(L.w / cell)), gh = Math.max(30, Math.round(L.h / cell));
+    var key = [gw, gh, p.d, p.f, p.v, GT.x0, GT.y1].join('|');
+    if (gtCache.key !== key) {
+      var A = new Float32Array(gw * gh), B = new Float32Array(gw * gh);
+      for (var j = 0; j < gh; j++) for (var i = 0; i < gw; i++) {
+        var x = GT.x0 + (i + 0.5) / gw * (GT.x1 - GT.x0), y = GT.y1 - (j + 0.5) / gh * (GT.y1 - GT.y0), dd = gtD(p, x, y);
+        A[j * gw + i] = kk * dd[0]; B[j * gw + i] = kk * dd[1];
+      }
+      var oc = document.createElement('canvas'); oc.width = gw; oc.height = gh;
+      gtCache = { key: key, A: A, B: B, oc: oc, img: oc.getContext('2d').createImageData(gw, gh) };
+    }
+    var C = gtCache, data = C.img.data, off = p.ph * Math.PI;
+    for (var q = 0; q < gw * gh; q++) {
+      var u = (Math.cos(ph - C.A[q]) + Math.cos(ph - C.B[q] + off)) / 2, o = q * 4;
+      if (u >= 0) { data[o] = 34 + 221 * u; data[o + 1] = 20 + 59 * u; data[o + 2] = 44 + 119 * u; }
+      else { var v = -u; data[o] = 34 - 28 * v; data[o + 1] = 20 - 14 * v; data[o + 2] = 44 - 30 * v; }
+      data[o + 3] = 255;
+    }
+    C.oc.getContext('2d').putImageData(C.img, 0, 0);
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(C.oc, L.l, L.top, L.w, L.h); ctx.restore();
+    ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.strokeRect(L.l, L.top, L.w, L.h);
+    /* các vân cực đại / cực tiểu (hypebol) */
+    if (p.lines) {
+      var c = p.d / 2;
+      for (var kq = -40; kq <= 40; kq++) {
+        [[kq + (p.ph ? 0.5 : 0), 'max'], [kq + (p.ph ? 0 : 0.5), 'min']].forEach(function (e) {
+          var D = e[0] * lam; if (Math.abs(D) >= p.d - 1e-6) return;
+          var a = Math.abs(D) / 2, b2 = c * c - a * a; if (b2 <= 0) return;
+          ctx.save(); ctx.setLineDash(e[1] === 'max' ? [7, 5] : [2, 5]); ctx.strokeStyle = e[1] === 'max' ? 'rgba(255,255,255,.7)' : 'rgba(76,201,255,.75)'; ctx.lineWidth = e[1] === 'max' ? 2 : 2.2;
+          ctx.beginPath();
+          for (var yy = GT.y0, first = true; yy <= GT.y1 + 1e-9; yy += 0.2) { var xx = D === 0 ? 0 : -Math.sign(D) * a * Math.sqrt(1 + yy * yy / b2); if (xx < GT.x0 || xx > GT.x1) { first = true; continue; } if (first) { ctx.moveTo(X(xx), Y(yy)); first = false; } else ctx.lineTo(X(xx), Y(yy)); }
+          ctx.stroke(); ctx.restore();
+          if (e[1] === 'max') { var yl = GT.y1 - 0.9, xl = D === 0 ? 0 : -Math.sign(D) * a * Math.sqrt(1 + yl * yl / b2); if (!p.ph && xl > GT.x0 + 0.5 && xl < GT.x1 - 0.5 && (Math.abs(e[0]) <= (W < 560 ? 1 : 3) || W > 800)) label(ctx, 'k=' + e[0], X(xl), Y(yl), FG, 13, 'center'); }
+        });
+      }
+    }
+    /* hai nguồn S1, S2 */
+    var sz = clamp(L.s * 1.7, 30, 50), pulse = 1 + 0.06 * Math.cos(TAU * st.t);
+    [[-p.d / 2, 'S₁', f[0]], [p.d / 2, 'S₂', f[1]]].forEach(function (e) { stickerAt(ctx, e[2].cv, X(e[0]), Y(0), sz * pulse); label(ctx, e[1], X(e[0]), Y(0) + sz * 0.62 + 8, FG, 16, 'center'); });
+    /* điểm M */
+    var mx = X(p.xM), my = Y(p.yM);
+    ctx.save(); ctx.setLineDash([6, 5]); ctx.strokeStyle = C_W; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(X(-p.d / 2), Y(0)); ctx.lineTo(mx, my); ctx.lineTo(X(p.d / 2), Y(0)); ctx.stroke(); ctx.restore();
+    var dd = gtD(p, p.xM, p.yM);
+    label(ctx, 'd₁', (X(-p.d / 2) + mx) / 2 - 12, (Y(0) + my) / 2, C_W, 15, 'right');
+    label(ctx, 'd₂', (X(p.d / 2) + mx) / 2 + 12, (Y(0) + my) / 2, C_W, 15, 'left');
+    var uM = (Math.cos(TAU * st.t - kk * dd[0]) + Math.cos(TAU * st.t - kk * dd[1] + off)) / 2;
+    var ms = sz * (1 + 0.18 * uM);
+    stickerAt(ctx, f[2].cv, mx, my, ms); label(ctx, 'M', mx + ms * 0.55 + 6, my - ms * 0.4, FG, 17, 'left');
+    /* thước bước sóng */
+    var bx = L.l + 14, by = L.top + L.h - 16;
+    ctx.strokeStyle = FG; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + lam * L.s, by); ctx.moveTo(bx, by - 6); ctx.lineTo(bx, by + 6); ctx.moveTo(bx + lam * L.s, by - 6); ctx.lineTo(bx + lam * L.s, by + 6); ctx.stroke();
+    label(ctx, 'λ = ' + fmt(lam, 2) + ' cm', bx + lam * L.s + 10, by, FG, 14, 'left');
+    if (W >= 560) label(ctx, 'Nhìn từ trên xuống · chiếu chậm', L.l + L.w - 12, L.top + L.h - 16, FG, 14, 'right');
+  }
+  addScene({
+    id: 'giao-thoa', group: 'giaothoa', chip: 'Giao thoa sóng nước', title: ['Giao thoa ', 'hai nguồn'], chars: ['Nguồn S₁', 'Nguồn S₂', 'Phao ở điểm M'], speed: 1, loop: true, tu: ' T',
+    hint: 'Kéo hoặc chạm vào mặt nước để đặt điểm M', drag: dragGT,
+    blurb: 'Hai bạn gõ đều nhau xuống mặt nước, tạo hai nguồn sóng kết hợp. Ở chỗ hai sóng tới cùng pha, nước dao động rất mạnh (vân cực đại). Ở chỗ hai sóng tới ngược pha, nước gần như đứng yên (vân cực tiểu).',
+    params: [
+      { k: 'f', label: 'Tần số f', type: 'range', min: 10, max: 50, step: 1, def: 20, unit: ' Hz' },
+      { k: 'v', label: 'Tốc độ truyền v', type: 'range', min: 20, max: 60, step: 1, def: 40, unit: ' cm/s' },
+      { k: 'd', label: 'Khoảng cách S₁S₂', type: 'range', min: 4, max: 14, step: 0.5, def: 9, unit: ' cm' },
+      { k: 'ph', label: 'Hai nguồn', type: 'seg', opts: [[0, 'Cùng pha'], [1, 'Ngược pha']], def: 0 },
+      { k: 'lines', label: 'Đường vân', type: 'seg', opts: [[1, 'Hiện'], [0, 'Ẩn']], def: 1, live: true },
+      { k: 'xM', label: 'Điểm M: tọa độ x', type: 'range', min: -13, max: 13, step: 0.1, def: 3.9, unit: ' cm', live: true },
+      { k: 'yM', label: 'Điểm M: tọa độ y', type: 'range', min: -7, max: 9, step: 0.1, def: 5.8, unit: ' cm', live: true }],
+    sim: simGT, draw: drawGT,
+    modes: [['u', 'Dao động tại M: hai sóng tới và sóng tổng hợp'], ['ab', 'Biên độ dọc đoạn S₁S₂']],
+    graph: function (r, p, m) {
+      if (m === 'u') return { s: [series(r, 'u1', C_V, 'Sóng từ S₁ tới M', 2, [7, 5]), series(r, 'u2', C_W, 'Sóng từ S₂ tới M', 2, [3, 5]), series(r, 'uM', PINK, 'Tổng hợp tại M')], yl: 'u (×A)', yr: [-2.4, 2.4] };
+      var c = p.d / 2;
+      return { s: [curve(-c, c, 300, function (x) { var dd = gtD(p, x, 0); return gtAmp(p, dd[0], dd[1]); }, PINK, 'Biên độ trên đoạn S₁S₂')], xr: [-c, c], xl: 'vị trí trên S₁S₂ (cm)', yl: 'biên độ (×A)', yr: [0, 2.4], dots: [] };
+    },
+    reads: function (p, s, r) { return [['d₁ = MS₁', fmt(r.d1, 2) + ' cm', 'vel'], ['d₂ = MS₂', fmt(r.d2, 2) + ' cm', 'push'], ['d₂ − d₁', fmt((r.d2 - r.d1) / r.lam, 2) + 'λ', 'drag'], ['Biên độ tại M', fmt(r.aM, 2) + 'A', 'weight']]; },
+    meet: function (p, s, r) {
+      var q = (r.d2 - r.d1) / r.lam, qa = p.ph ? q - 0.5 : q, n = Math.round(qa), m2 = Math.floor(qa) + 0.5;
+      if (Math.abs(qa - n) < 0.06) return '<strong>M nằm trên vân cực đại' + (Math.round(q * 2) === 0 ? ' trung tâm' : '') + '</strong> (d₂ − d₁ = ' + fmt(q, 1) + 'λ): hai sóng tới M cùng pha, M dao động mạnh nhất với biên độ 2A.';
+      if (Math.abs(qa - m2) < 0.06) return '<strong>M nằm trên vân cực tiểu</strong> (d₂ − d₁ = ' + fmt(q, 1) + 'λ): hai sóng tới M ngược pha, triệt tiêu nhau, M gần như đứng yên.';
+      return '<strong>M nằm giữa vân cực đại và vân cực tiểu:</strong> biên độ ' + fmt(r.aM, 2) + 'A. Kéo M dọc theo một đường nét đứt để thấy biên độ không đổi.';
+    },
+    formula: '<code>Cực đại: d₂ − d₁ = kλ</code><code>Cực tiểu: d₂ − d₁ = (k + ½)λ</code><small>Hai nguồn kết hợp cùng pha, k = 0, ±1, ±2… Nếu hai nguồn ngược pha thì đổi chỗ hai điều kiện. Khoảng cách hai cực đại liền kề trên S₁S₂ là λ/2.</small>',
+    ratios: function (p, r) {
+      var c = countFringes(p);
+      return [
+        { t: 'Trên đoạn S₁S₂ (d = ' + fmt(p.d, 1) + ' cm, λ = ' + fmt(r.lam, 2) + ' cm)', rows: [{ k: 'Số vân cực đại', v: String(c.mx), r: '', cur: true }, { k: 'Số vân cực tiểu', v: String(c.mn), r: '', cur: false }, { k: 'Hai cực đại liền kề cách', v: fmt(r.lam / 2, 2) + ' cm', r: 'λ/2', cur: false }] },
+        { t: 'Đổi tần số (v = ' + fmt(p.v, 0) + ' cm/s, d = ' + fmt(p.d, 1) + ' cm)', rows: [10, 20, 25, 40, 50].map(function (f) { var q = { d: p.d, v: p.v, f: f, ph: p.ph }; return { k: 'f = ' + f + ' Hz', v: 'λ = ' + fmt(p.v / f, 2) + ' cm', r: countFringes(q).mx + ' cực đại', cur: f === p.f }; }) }];
+    },
+    tips: ['Kéo M dọc theo một đường nét trắng: biên độ tại M có thay đổi không?', 'Đặt M lên một đường chấm xanh: phao ở M dao động thế nào?', 'Tăng tần số: số vân cực đại trên S₁S₂ tăng hay giảm? Kiểm tra bằng bảng.', 'Đổi hai nguồn sang “Ngược pha”: đường trung trực của S₁S₂ là vân gì?']
+  });
+  function dragGT(x, y, W, H, p) {
+    var L = lyGT(W, H); if (x < L.l || x > L.l + L.w || y < L.top || y > L.top + L.h) return false;
+    p.xM = Math.round(clamp(GT.x0 + (x - L.l) / L.s, Math.max(-13, GT.x0 + 0.3), Math.min(13, GT.x1 - 0.3)) * 10) / 10; p.yM = Math.round(clamp(GT.y1 - (y - L.top) / L.s, -7, 9) * 10) / 10; return true;
+  }
+
+  /* ---------- 5. Giao thoa ánh sáng: khe Young (Bài 12) ---------- */
+  function wlRGB(nm) {
+    var r = 0, g = 0, b = 0;
+    if (nm < 440) { r = (440 - nm) / 60; b = 1; } else if (nm < 490) { g = (nm - 440) / 50; b = 1; } else if (nm < 510) { g = 1; b = (510 - nm) / 20; }
+    else if (nm < 580) { r = (nm - 510) / 70; g = 1; } else if (nm < 645) { r = 1; g = (645 - nm) / 65; } else { r = 1; }
+    var k = nm < 420 ? 0.35 + 0.65 * (nm - 380) / 40 : nm > 700 ? 0.35 + 0.65 * (780 - nm) / 80 : 1;
+    return [r, g, b].map(function (c) { return Math.round(255 * Math.pow(c * k, 0.8)); });
+  }
+  function yI(p) { return p.lam * 1e-9 * p.D / (p.a * 1e-3) * 1e3; } /* mm */
+  var YX = 12; /* mm, nửa bề rộng màn hiển thị */
+  function lyYoung(W, H) { var pr = W - Math.max(64, W * 0.09), pl = W * 0.6; return { sl: W * 0.17, sc: W * 0.5, pl: pl, pr: pr, top: 34, bot: H - 46 }; }
+  function drawYoung(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H, '#0d0b10', '#0b0a0c');
+    var L = lyYoung(W, H), i = yI(p), col = wlRGB(p.lam), cs = 'rgb(' + col.join(',') + ')', yc = H / 2, gap = 22 + 16 * p.a;
+    /* nguồn sáng và hai khe */
+    var lx = Math.max(28, W * 0.05);
+    var gl = ctx.createRadialGradient(lx, yc, 2, lx, yc, 34); gl.addColorStop(0, '#fff'); gl.addColorStop(0.3, cs); gl.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(lx, yc, 34, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(' + col.join(',') + ',.16)'; ctx.beginPath(); ctx.moveTo(lx, yc); ctx.lineTo(L.sl, yc - gap); ctx.lineTo(L.sl, yc + gap); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#d9c9d3'; ctx.fillRect(L.sl - 4, 20, 8, yc - gap / 2 - 5 - 20); ctx.fillRect(L.sl - 4, yc - gap / 2 + 5, 8, gap - 10); ctx.fillRect(L.sl - 4, yc + gap / 2 + 5, 8, H - 20 - (yc + gap / 2 + 5));
+    label(ctx, 'S₁', L.sl - 10, yc - gap / 2, FG, 14, 'right'); label(ctx, 'S₂', L.sl - 10, yc + gap / 2, FG, 14, 'right');
+    /* sóng ánh sáng lan ra từ hai khe (minh họa, không theo tỉ lệ) */
+    var lv = 18 + (p.lam - 380) / 380 * 16, ph = (st.t % 1) * lv;
+    ctx.save(); ctx.beginPath(); ctx.rect(L.sl + 4, 0, L.sc - L.sl - 4, H); ctx.clip();
+    [yc - gap / 2, yc + gap / 2].forEach(function (y0) {
+      for (var rr2 = ph; rr2 < L.sc - L.sl + 40; rr2 += lv) { ctx.strokeStyle = 'rgba(' + col.join(',') + ',' + (0.55 * (1 - rr2 / (L.sc - L.sl + 60))).toFixed(3) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(L.sl, y0, rr2, -Math.PI / 2, Math.PI / 2); ctx.stroke(); }
+    });
+    ctx.restore();
+    /* màn nhỏ và vân trên màn */
+    var scH = H - 60;
+    for (var y = 30; y < H - 30; y += 2) { var xmm = (yc - y) / (scH / 2) * YX, I = Math.pow(Math.cos(Math.PI * xmm / i), 2); ctx.fillStyle = 'rgba(' + col.join(',') + ',' + I.toFixed(3) + ')'; ctx.fillRect(L.sc - 5, y, 10, 2); }
+    ctx.strokeStyle = MUTE; ctx.lineWidth = 1; ctx.strokeRect(L.sc - 6, 29, 12, H - 59);
+    dbl(ctx, L.sl + 6, H - 24, L.sc - 8, H - 24, MUTE); label(ctx, 'D = ' + fmt(p.D, 1) + ' m', (L.sl + L.sc) / 2, H - 40, FG, 14, 'center');
+    label(ctx, 'a = ' + fmt(p.a, 1) + ' mm', L.sl + 8, 18, FG, 14, 'left');
+    label(ctx, 'Hình không theo tỉ lệ', (L.sl + L.sc) / 2, 18 + 22, MUTE, 13, 'center');
+    /* màn quan sát phóng to bên phải */
+    var pw = L.pr - L.pl, ph2 = L.bot - L.top, Yp = function (xm) { return L.top + ph2 / 2 - xm / YX * ph2 / 2; };
+    for (var yy = L.top; yy < L.bot; yy += 1) { var xm2 = (L.top + ph2 / 2 - yy) / (ph2 / 2) * YX, I2 = Math.pow(Math.cos(Math.PI * xm2 / i), 2); ctx.fillStyle = 'rgba(' + col.join(',') + ',' + I2.toFixed(3) + ')'; ctx.fillRect(L.pl, yy, pw, 1.2); }
+    ctx.strokeStyle = FG; ctx.lineWidth = 2; ctx.strokeRect(L.pl, L.top, pw, ph2);
+    label(ctx, 'Màn quan sát (phóng to)', (L.pl + L.pr) / 2, L.top - 16, FG, 14, 'center');
+    var pxPerI = i / YX * ph2 / 2;
+    for (var k = -12; k <= 12; k++) { var xk = k * i; if (Math.abs(xk) > YX) continue; if (pxPerI < 15 && k % 2) continue; label(ctx, String(k), L.pl - 6, Yp(xk), k === 0 ? FG : MUTE, 13, 'right'); }
+    label(ctx, 'bậc k', L.pl - 6, L.bot + 16, MUTE, 12, 'right');
+    /* bạn đứng ở màn chỉ vào M */
+    var ym = Yp(p.xM), sz = clamp(W * 0.055, 34, 52);
+    force(ctx, L.pr + sz * 0.2, ym, -1, 0, Math.max(20, sz * 0.5), C_W, null, { w: 4 });
+    ctx.strokeStyle = C_W; ctx.lineWidth = 2; ctx.strokeRect(L.pl - 2, ym - 2, pw + 4, 4);
+    stickerAt(ctx, f[0].cv, Math.min(W - sz / 2 - 2, L.pr + sz * 0.62), ym, sz);
+    label(ctx, 'M', L.pl + pw / 2, ym - 14, FG, 15, 'center');
+  }
+  function youngAt(p) {
+    var i = yI(p), q = p.xM / i, n = Math.round(q), h = Math.floor(q) + 0.5;
+    if (Math.abs(q - n) < 0.08) return { kind: 'sang', k: Math.abs(n), q: q, i: i };
+    if (Math.abs(q - h) < 0.08) return { kind: 'toi', k: Math.floor(Math.abs(q)) + 1, q: q, i: i };
+    return { kind: 'giua', q: q, i: i };
+  }
+  addScene({
+    id: 'young', group: 'giaothoa', chip: 'Giao thoa ánh sáng', title: ['Khe Young: ', 'giao thoa ánh sáng'], chars: ['Bạn đứng ở màn'], speed: 1, loop: true, tu: ' T',
+    hint: 'Chạm vào màn quan sát (bên phải) để đặt điểm M',  drag: dragYoung,
+    blurb: 'Ánh sáng qua hai khe hẹp S₁, S₂ tạo ra hai nguồn sáng kết hợp. Trên màn xuất hiện các vân sáng và vân tối xen kẽ, cách đều nhau một khoảng vân i. Đây cũng là giao thoa, giống sóng nước.',
+    params: [
+      { k: 'lam', label: 'Bước sóng ánh sáng λ', type: 'range', min: 380, max: 760, step: 10, def: 600, unit: ' nm' },
+      { k: 'a', label: 'Khoảng cách hai khe a', type: 'range', min: 0.5, max: 2, step: 0.1, def: 1, unit: ' mm' },
+      { k: 'D', label: 'Khoảng cách từ hai khe tới màn D', type: 'range', min: 0.5, max: 2.5, step: 0.1, def: 1.5, unit: ' m' },
+      { k: 'xM', label: 'Vị trí điểm M trên màn', type: 'range', min: -12, max: 12, step: 0.05, def: 2.7, unit: ' mm', live: true, d: 2 }],
+    sim: function () { return pack(4, function () { return {}; }); }, draw: drawYoung,
+    modes: [['I', 'Độ sáng trên màn (ánh sáng đang chọn)'], ['rgb', 'So sánh ánh sáng đỏ, lục, tím']],
+    graph: function (r, p, m) {
+      var i = yI(p), cs = 'rgb(' + wlRGB(p.lam).join(',') + ')';
+      if (m === 'I') return { s: [curve(-YX, YX, 600, function (x) { return Math.pow(Math.cos(Math.PI * x / i), 2); }, cs, 'λ = ' + p.lam + ' nm, i = ' + fmt(i, 2) + ' mm')], xr: [-YX, YX], xl: 'x trên màn (mm)', yl: 'độ sáng', yr: [0, 1.15], dots: [{ x: p.xM, y: Math.pow(Math.cos(Math.PI * p.xM / i), 2), color: C_W }], vx: p.xM };
+      return { s: [[700, 'Đỏ 700 nm'], [530, 'Lục 530 nm'], [400, 'Tím 400 nm']].map(function (o) { var ii = yI({ lam: o[0], D: p.D, a: p.a }); return curve(-YX, YX, 600, function (x) { return Math.pow(Math.cos(Math.PI * x / ii), 2); }, 'rgb(' + wlRGB(o[0]).join(',') + ')', o[1] + ': i = ' + fmt(ii, 2) + ' mm'); }), xr: [-YX, YX], xl: 'x trên màn (mm)', yl: 'độ sáng', yr: [0, 1.15], dots: [], vx: 0 };
+    },
+    reads: function (p) { var y = youngAt(p); return [['Khoảng vân i', fmt(y.i, 2) + ' mm', 'vel'], ['x_M / i', fmt(y.q, 2), 'push'], ['Bước sóng', p.lam + ' nm', 'drag'], ['Tại M', y.kind === 'sang' ? (y.k === 0 ? 'Sáng trung tâm' : 'Sáng bậc ' + y.k) : y.kind === 'toi' ? 'Tối thứ ' + y.k : 'Giữa hai vân', 'weight']]; },
+    meet: function (p) {
+      var y = youngAt(p);
+      var t = y.kind === 'sang' ? '<strong>M là vân sáng ' + (y.k === 0 ? 'trung tâm' : 'bậc ' + y.k) + '</strong>: x = k·i với k = ' + Math.round(y.q) + '.' : y.kind === 'toi' ? '<strong>M là vân tối thứ ' + y.k + '</strong>: x = (k + ½)·i.' : '<strong>M nằm giữa vân sáng và vân tối.</strong>';
+      return t + ' Mẹo làm bài: khoảng cách giữa n vân sáng liên tiếp bằng (n − 1)·i.';
+    },
+    formula: '<code>i = λ · D / a</code><code>Vân sáng: x = k · i</code><code>Vân tối: x = (k + ½) · i</code><small>a: khoảng cách hai khe, D: khoảng cách từ hai khe tới màn, λ: bước sóng ánh sáng. k = 0, ±1, ±2…</small>',
+    ratios: function (p) {
+      var i = yI(p);
+      return [
+        { t: 'Đổi màu ánh sáng (a = ' + fmt(p.a, 1) + ' mm, D = ' + fmt(p.D, 1) + ' m)', rows: [[700, 'Đỏ'], [580, 'Vàng'], [530, 'Lục'], [470, 'Lam'], [400, 'Tím']].map(function (o) { return { k: o[1] + ' ' + o[0] + ' nm', v: 'i = ' + fmt(yI({ lam: o[0], D: p.D, a: p.a }), 2) + ' mm', r: '', cur: o[0] === p.lam }; }) },
+        { t: 'Đổi D hoặc a (λ = ' + p.lam + ' nm)', rows: [{ k: 'Giữ nguyên', v: 'i = ' + fmt(i, 2) + ' mm', r: '×1', cur: true }, { k: 'Gấp đôi D', v: 'i = ' + fmt(2 * i, 2) + ' mm', r: '×2', cur: false }, { k: 'Gấp đôi a', v: 'i = ' + fmt(i / 2, 2) + ' mm', r: '×½', cur: false }] },
+        { t: 'Kiểu bài thường gặp', rows: [5, 10, 12].map(function (n) { return { k: n + ' vân sáng liên tiếp', v: 'dài ' + (n - 1) + 'i', r: '= ' + fmt((n - 1) * i, 2) + ' mm', cur: false }; }) }];
+    },
+    tips: ['Chuyển từ ánh sáng đỏ sang tím: các vân xít lại hay giãn ra? Vì sao?', 'Đưa màn ra xa gấp đôi (tăng D): khoảng vân thay đổi thế nào?', 'Đặt M ở vân sáng bậc 3 rồi đổi λ: M còn là vân sáng không?', 'Chọn đồ thị “So sánh đỏ, lục, tím”: ở x = 0 cả ba màu đều là vân gì?']
+  });
+  function dragYoung(x, y, W, H, p) { var L = lyYoung(W, H); if (x < L.pl - 30 || y < L.top || y > L.bot) return false; p.xM = Math.round(clamp((L.top + (L.bot - L.top) / 2 - y) / ((L.bot - L.top) / 2) * YX, -12, 12) * 20) / 20; return true; }
+
+  /* ---------- 6. Sóng dừng trên dây (Bài 13) ---------- */
+  var SD = { a0: 0.25, g: 0.045 }; /* cm: biên độ cần rung; hệ số tắt dần trong mô hình */
+  function sdK(p) { return TAU * p.f / p.v; }
+  function sdDen(p) { var kL = sdK(p) * p.L, q = p.end ? Math.cos(kL) : Math.sin(kL); return Math.sqrt(q * q + SD.g * SD.g); }
+  function sdAmp(p, x) { var k = sdK(p), q = p.end ? Math.cos(k * (p.L - x)) : Math.sin(k * (p.L - x)); return SD.a0 * q / sdDen(p); } /* có dấu */
+  function sdPeak(p) { var kL = sdK(p) * p.L; return SD.a0 * (p.end ? 1 : (kL >= Math.PI / 2 ? 1 : Math.sin(kL))) / sdDen(p); }
+  function sdInfo(p) {
+    var lam = p.v / p.f, kL = sdK(p) * p.L, res = p.end ? Math.abs(Math.cos(kL)) < 0.14 : Math.abs(Math.sin(kL)) < 0.14;
+    var nb, nn, fn, nTarget;
+    if (!p.end) { var n = Math.max(1, Math.round(2 * p.L / lam)); nb = n; nn = n + 1; nTarget = Math.max(1, Math.round(p.f / (p.v / (2 * p.L)))); fn = nTarget * p.v / (2 * p.L); }
+    else { var m = Math.max(0, Math.round((4 * p.L / lam - 1) / 2)); nb = m + 1; nn = m + 1; var m2 = Math.max(0, Math.round((p.f / (p.v / (4 * p.L)) - 1) / 2)); nTarget = m2 + 1; fn = (2 * m2 + 1) * p.v / (4 * p.L); }
+    return { lam: lam, res: res, nb: nb, nn: nn, fn: fn, nT: nTarget };
+  }
+  function lySD(W, H, p) { var xa = clamp(W * 0.12, 70, 120), sx = (W - xa - 50) / 1.5; return { xa: xa, sx: sx, xb: xa + p.L * sx, y0: H * 0.44, sy: Math.min(11, H * 0.022) }; }
+  function simSD(p) { var r = pack(6, function (t) { return { uM: sdAmp(p, Math.min(p.xM, p.L)) * Math.cos(TAU * t) }; }); r.info = sdInfo(p); return r; }
+  function drawSD(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H);
+    var L = lySD(W, H, p), c = Math.cos(TAU * st.t), X = function (x) { return L.xa + x * L.sx; }, Y = function (u) { return L.y0 - u * L.sy; }, info = sdInfo(p);
+    /* đường bao (giống ảnh chụp dây đang rung) */
+    ctx.beginPath();
+    for (var x = 0; x <= p.L + 1e-9; x += p.L / 240) { var a = Math.abs(sdAmp(p, x)); if (x === 0) ctx.moveTo(X(x), Y(a)); else ctx.lineTo(X(x), Y(a)); }
+    for (var x2 = p.L; x2 >= -1e-9; x2 -= p.L / 240) ctx.lineTo(X(x2), Y(-Math.abs(sdAmp(p, x2))));
+    ctx.closePath(); ctx.fillStyle = 'rgba(255,79,163,.16)'; ctx.fill();
+    dashH(ctx, X(0), X(p.L), L.y0);
+    /* dây lúc này */
+    [[DARK, 8], [PINK, 4.5]].forEach(function (e) { ctx.strokeStyle = e[0]; ctx.lineWidth = e[1]; ctx.beginPath(); for (var x = 0; x <= p.L + 1e-9; x += p.L / 240) { var py = Y(sdAmp(p, x) * c); if (x === 0) ctx.moveTo(X(x), py); else ctx.lineTo(X(x), py); } ctx.stroke(); });
+    /* máy rung ở đầu P */
+    ctx.fillStyle = '#2c2531'; rr(ctx, X(0) - 62, L.y0 - 34, 50, 68, 8); ctx.fill(); ctx.strokeStyle = PINK; ctx.lineWidth = 2; ctx.stroke();
+    label(ctx, 'máy rung', X(0) - 37, L.y0 + 50, MUTE, 13, 'center');
+    ctx.strokeStyle = '#e8d7e2'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(X(0) - 12, Y(SD.a0 * c)); ctx.lineTo(X(0), Y(SD.a0 * c)); ctx.stroke();
+    label(ctx, 'P', X(0), L.y0 - 60, FG, 16, 'center');
+    /* đầu Q */
+    if (!p.end) { ctx.fillStyle = '#d9c9d3'; ctx.fillRect(X(p.L), L.y0 - 40, 12, 80); label(ctx, 'Q (cố định)', X(p.L) + 6, L.y0 - 56, FG, 14, 'center'); }
+    else { ctx.strokeStyle = '#d9c9d3'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(X(p.L) + 10, L.y0 - 90); ctx.lineTo(X(p.L) + 10, L.y0 + 90); ctx.stroke(); ctx.strokeStyle = C_W; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(X(p.L) + 10, Y(sdAmp(p, p.L) * c), 8, 0, TAU); ctx.stroke(); label(ctx, 'Q (tự do)', X(p.L) + 10, L.y0 - 104, FG, 14, 'center'); }
+    /* nút, bụng */
+    if (info.res) {
+      var lam = info.lam;
+      for (var m = 0; m < 40; m++) {
+        var xn = p.end ? p.L - (m + 0.5) * lam / 2 : p.L - m * lam / 2, xbng = p.end ? p.L - m * lam / 2 : p.L - (m + 0.5) * lam / 2;
+        if (xn >= -lam * 0.08) { ctx.fillStyle = C_LIFT; ctx.beginPath(); ctx.arc(X(Math.max(0, xn)), L.y0, 5, 0, TAU); ctx.fill(); label(ctx, 'N', X(Math.max(0, xn)), L.y0 + 22, C_LIFT, 13, 'center'); }
+        if (xbng >= 0) label(ctx, 'B', X(xbng), Y(Math.abs(sdAmp(p, xbng))) - 16, C_W, 13, 'center');
+      }
+    }
+    /* thước */
+    var yr = L.y0 + 118;
+    ctx.strokeStyle = MUTE; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X(0), yr); ctx.lineTo(X(p.L), yr); ctx.stroke();
+    for (var cm = 0; cm <= p.L * 100 + 1e-6; cm += 10) { var xx = X(cm / 100); ctx.beginPath(); ctx.moveTo(xx, yr - (cm % 50 === 0 ? 9 : 5)); ctx.lineTo(xx, yr); ctx.stroke(); if (cm % 50 === 0) label(ctx, fmt(cm / 100, 1) + ' m', xx, yr + 14, MUTE, 13, 'center'); }
+    /* điểm M */
+    var xm = Math.min(p.xM, p.L), aM = sdAmp(p, xm), sz = clamp(W * 0.05, 34, 50);
+    dashV(ctx, X(xm), L.y0 - 70, L.y0 + 70, C_V);
+    stickerAt(ctx, f[0].cv, X(xm), Y(aM * c), sz); label(ctx, 'M', X(xm) + sz * 0.6, Y(aM * c) - sz * 0.45, C_V, 15, 'left');
+    chipTxt(ctx, 'f = ' + fmt(p.f, 1) + ' Hz · λ = ' + fmt(info.lam, 2) + ' m', W - 16, 28, info.res ? C_LIFT : MUTE, 'right');
+    label(ctx, 'chiếu chậm', 16, 26, MUTE, 13, 'left');
+  }
+  addScene({
+    id: 'song-dung', group: 'giaothoa', chip: 'Sóng dừng trên dây', title: ['Sóng dừng ', 'trên sợi dây'], chars: ['Bạn ở điểm M'], speed: 1, loop: true, tu: ' T',
+    hint: 'Từ từ tăng tần số và xem dây “nở” thành các bó sóng', drag: dragSD,
+    blurb: 'Sóng tới và sóng phản xạ ở đầu Q gặp nhau và giao thoa. Chỉ khi chiều dài dây phù hợp với bước sóng, dây mới tạo thành các bó sóng rõ ràng: có những điểm đứng yên (nút) và những điểm dao động mạnh nhất (bụng).',
+    params: [
+      { k: 'f', label: 'Tần số máy rung f', type: 'range', min: 5, max: 60, step: 0.5, def: 30, unit: ' Hz' },
+      { k: 'L', label: 'Chiều dài dây PQ', type: 'range', min: 0.5, max: 1.5, step: 0.05, def: 1, unit: ' m', d: 2 },
+      { k: 'v', label: 'Tốc độ truyền sóng trên dây', type: 'range', min: 10, max: 30, step: 1, def: 20, unit: ' m/s' },
+      { k: 'end', label: 'Đầu Q', type: 'seg', opts: [[0, 'Cố định'], [1, 'Tự do']], def: 0 },
+      { k: 'xM', label: 'Vị trí điểm M (tính từ P)', type: 'range', min: 0, max: 1.5, step: 0.01, def: 0.5, unit: ' m', live: true, d: 2 }],
+    sim: simSD, draw: drawSD,
+    modes: [['res', 'Biên độ bụng sóng theo tần số'], ['x', 'Hình dạng dây và đường bao'], ['u', 'Li độ của M – thời gian']],
+    graph: function (r, p, m, s, t) {
+      if (m === 'res') { var q = {}; for (var k in p) q[k] = p[k]; return { s: [curve(5, 60, 1100, function (f) { q.f = f; return sdPeak(q); }, PINK, 'Biên độ lớn nhất trên dây')], xr: [5, 60], xl: 'f (Hz)', yl: 'biên độ (cm)', dots: [{ x: p.f, y: sdPeak(p), color: C_W }], vx: p.f }; }
+      if (m === 'x') { var pk = Math.max(0.4, sdPeak(p)) * 1.2; return { s: [curve(0, p.L, 240, function (x) { return Math.abs(sdAmp(p, x)); }, 'rgba(255,79,163,.5)', 'Đường bao', { dash: [6, 5] }), curve(0, p.L, 240, function (x) { return sdAmp(p, x) * Math.cos(TAU * t); }, PINK, 'Dây lúc này')], xr: [0, p.L], xl: 'x (m)', yl: 'u (cm)', yr: [-pk, pk], dots: [{ x: Math.min(p.xM, p.L), y: sdAmp(p, Math.min(p.xM, p.L)) * Math.cos(TAU * t), color: C_V }] }; }
+      var a = Math.max(0.3, Math.abs(sdAmp(p, Math.min(p.xM, p.L)))) * 1.3; return { s: [series(r, 'uM', C_V, 'Li độ của M')], yl: 'u (cm)', yr: [-a, a] };
+    },
+    reads: function (p, s, r) { var i = r.info; return [['Bước sóng λ', fmt(i.lam, 2) + ' m', 'vel'], ['Số bụng', i.res ? String(i.nb) : '—', 'weight'], ['Số nút', i.res ? String(i.nn) : '—', 'lift'], ['Biên độ tại M', fmt(Math.abs(sdAmp(p, Math.min(p.xM, p.L))), 2) + ' cm', 'push']]; },
+    meet: function (p, s, r) {
+      var i = r.info, aM = Math.abs(sdAmp(p, Math.min(p.xM, p.L))), pk = sdPeak(p);
+      var head = i.res ? (p.end ? '<strong>Có sóng dừng:</strong> L = (2n + 1)λ/4, trên dây có ' + i.nb + ' bụng, ' + i.nn + ' nút (đầu tự do là bụng).' : '<strong>Có sóng dừng:</strong> L = ' + i.nb + ' · λ/2, trên dây có ' + i.nb + ' bụng, ' + i.nn + ' nút (kể cả hai đầu).') : '<strong>Chưa có sóng dừng rõ:</strong> dây rung yếu. Thử f ≈ ' + fmt(i.fn, 1) + ' Hz.';
+      var tail = !i.res ? '' : aM > 0.8 * pk ? ' M đang ở <strong>bụng sóng</strong>.' : aM < 0.12 * pk ? ' M đang ở <strong>nút sóng</strong>: gần như đứng yên.' : ' M nằm giữa nút và bụng.';
+      return head + tail;
+    },
+    formula: '<code>Hai đầu cố định: L = n · λ/2</code><code>Một đầu tự do: L = (2n + 1) · λ/4</code><small>Khoảng cách hai nút (hoặc hai bụng) liền kề là λ/2; nút và bụng liền kề cách nhau λ/4. Đầu gắn máy rung coi như một nút.</small>',
+    ratios: function (p) {
+      var rows = [];
+      for (var n = 1; n <= 5; n++) { var fn = p.end ? (2 * n - 1) * p.v / (4 * p.L) : n * p.v / (2 * p.L); rows.push({ k: p.end ? 'n = ' + (n - 1) : 'n = ' + n, v: 'f = ' + fmt(fn, 1) + ' Hz', r: n + ' bụng', cur: Math.abs(fn - p.f) / fn < 0.03 }); }
+      return [
+        { t: 'Tần số cho sóng dừng (L = ' + fmt(p.L, 2) + ' m, v = ' + fmt(p.v, 0) + ' m/s)', rows: rows },
+        { t: 'Đổi chiều dài dây (hai đầu cố định, 1 bụng)', rows: [0.5, 1, 1.5].map(function (L) { return { k: 'L = ' + fmt(L, 1) + ' m', v: 'f₁ = ' + fmt(p.v / (2 * L), 1) + ' Hz', r: 'λ = ' + fmt(2 * L, 1) + ' m', cur: Math.abs(L - p.L) < 1e-6 }; }) }];
+    },
+    tips: ['Kéo tần số từ 5 Hz lên 60 Hz: dây rung mạnh ở những tần số nào? So với bảng.', 'Ở f = 20 Hz và f = 30 Hz, đếm số bụng và số nút. Có đúng L = nλ/2 không?', 'Đặt M vào một nút: phao M có dao động không?', 'Đổi đầu Q sang “Tự do” (giống ống sáo, đàn K’lông pút): đầu Q là nút hay bụng?']
+  });
+  function dragSD(x, y, W, H, p) { var L = lySD(W, H, p); if (Math.abs(y - L.y0) > 110 || x < L.xa - 20 || x > L.xb + 20) return false; p.xM = Math.round(clamp((x - L.xa) / L.sx, 0, p.L) * 100) / 100; return true; }
+
+
+  /* ================= Trạng thái và giao diện ================= */
+  var S = { id: SCENES[0].id, P: {}, assign: {}, t: 0, playing: false, speed: 1, res: null, gm: {}, last: 0, inp: {}, drag: false, pend: 0 };
+  SCENES.forEach(function (sc) {
+    S.P[sc.id] = {}; sc.params.forEach(function (q) { S.P[sc.id][q.k] = q.def; });
+    S.assign[sc.id] = sc.chars.map(function (c, i) { return 'demo' + ((i + SCENES.indexOf(sc)) % 5); });
+    S.gm[sc.id] = sc.modes[0][0];
+  });
+  function sceneById(id) { for (var i = 0; i < SCENES.length; i++) if (SCENES[i].id === id) return SCENES[i]; return null; }
+  function cur() { return sceneById(S.id); }
+  function P() { return S.P[S.id]; }
+  function faces() {
+    var sc = cur();
+    return sc.chars.map(function (c, i) {
+      var r = rosterGet(S.assign[S.id][i]) || R[i % R.length];
+      var cv = faceOf(r) || placeholder((r && r.name[0] || '?').toUpperCase(), 'hsl(300,80%,70%)');
+      return { cv: cv, name: r ? r.name : c };
+    });
+  }
+  /* cả lớp: mỗi bạn trong danh sách là một khuôn mặt (dùng cho phân tử khí, hạt...) */
+  function crowd() {
+    var a = R.map(function (r) { return faceOf(r) || placeholder((r.name[0] || '?').toUpperCase(), 'hsl(300,80%,70%)'); });
+    return a.length ? a : [placeholder('?', PINK)];
+  }
+
+  function buildNav() {
+    GROUPS.forEach(function (g) {
+      var box = $(g.box);
+      SCENES.filter(function (s) { return s.group === g.id; }).forEach(function (sc) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = sc.chip; b.dataset.id = sc.id;
+        b.addEventListener('click', function () { selectScene(sc.id); });
+        box.appendChild(b);
+      });
+    });
+  }
+  function decs(q) { return q.d !== undefined ? q.d : q.step >= 1 ? 0 : (q.step >= 0.1 ? 1 : 2); }
+  function buildParams() {
+    var sc = cur(), box = $('params'); box.innerHTML = ''; S.inp = {};
+    sc.params.forEach(function (q) {
+      var item = document.createElement('div'); item.className = 'pitem';
+      var lab = document.createElement('div'); lab.className = 'plabel'; var sp = document.createElement('span'); sp.textContent = q.label; lab.appendChild(sp);
+      item.appendChild(lab);
+      if (q.type === 'range') {
+        var val = document.createElement('b'); lab.appendChild(val);
+        var inp = document.createElement('input'); inp.type = 'range'; inp.min = q.min; inp.max = q.max; inp.step = q.step; inp.value = P()[q.k]; inp.setAttribute('aria-label', q.label);
+        var show = function () { val.textContent = fmt(P()[q.k], decs(q)) + q.unit; };
+        show();
+        inp.addEventListener('input', function () { P()[q.k] = parseFloat(inp.value); show(); if (q.live) refresh(); else restart(); });
+        S.inp[q.k] = { inp: inp, show: show };
+        item.appendChild(inp);
+      } else {
+        var seg = document.createElement('div'); seg.className = 'seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', q.label);
+        q.opts.forEach(function (o) {
+          var b = document.createElement('button'); b.type = 'button'; b.textContent = o[1]; b.setAttribute('aria-pressed', String(P()[q.k] === o[0]));
+          b.addEventListener('click', function () { P()[q.k] = o[0]; seg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); }); b.setAttribute('aria-pressed', 'true'); if (q.live) refresh(); else restart(); });
+          seg.appendChild(b);
+        });
+        item.appendChild(seg);
+      }
+      box.appendChild(item);
+    });
+  }
+  /* cập nhật thanh trượt khi em kéo trên hình */
+  function syncParams() {
+    Object.keys(S.inp).forEach(function (k) { var o = S.inp[k]; o.inp.value = P()[k]; o.show(); });
+  }
+  function buildSlots() {
+    var sc = cur(), box = $('slots'); box.innerHTML = '';
+    sc.chars.forEach(function (c, i) {
+      var row = document.createElement('div'); row.className = 'slot';
+      var av = document.createElement('canvas'); av.className = 'avatar'; av.width = 124; av.height = 124; av.setAttribute('aria-hidden', 'true'); av.dataset.i = i;
+      var nm = document.createElement('div'); nm.className = 'names';
+      var l = document.createElement('span'); l.textContent = c;
+      var sel = document.createElement('select'); sel.setAttribute('aria-label', 'Học sinh đóng vai ' + c);
+      R.forEach(function (r) { var o = document.createElement('option'); o.value = r.id; o.textContent = r.name + (r.demo ? ' (mẫu)' : ''); sel.appendChild(o); });
+      sel.value = rosterGet(S.assign[S.id][i]) ? S.assign[S.id][i] : R[i % R.length].id;
+      sel.addEventListener('change', function () { S.assign[S.id][i] = sel.value; drawAvatars(); draw(); });
+      nm.appendChild(l); nm.appendChild(sel); row.appendChild(av); row.appendChild(nm); box.appendChild(row);
+    });
+    if (sc.crowd) {
+      var p = document.createElement('p'); p.className = 'hint'; p.style.margin = '0'; p.textContent = sc.crowd; box.appendChild(p);
+      var strip = document.createElement('div'); strip.className = 'crowd';
+      crowd().slice(0, 12).forEach(function (cv) { var c = document.createElement('canvas'); c.width = c.height = 64; c.getContext('2d').drawImage(cv, 0, 0, 64, 64); c.setAttribute('aria-hidden', 'true'); strip.appendChild(c); });
+      box.appendChild(strip);
+    }
+    drawAvatars();
+  }
+  function drawAvatars() {
+    var fs = faces();
+    document.querySelectorAll('canvas.avatar').forEach(function (c) { var x = c.getContext('2d'); x.clearRect(0, 0, 124, 124); var f = fs[+c.dataset.i]; if (f) x.drawImage(f.cv, 0, 0, 124, 124); });
+  }
+  function buildModes() {
+    var sc = cur(), sel = $('gmode'); sel.innerHTML = '';
+    sc.modes.forEach(function (m) { var o = document.createElement('option'); o.value = m[0]; o.textContent = m[1]; sel.appendChild(o); });
+    sel.value = S.gm[S.id];
+  }
+  function buildStatic() {
+    var sc = cur();
+    document.querySelectorAll('.chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.id === S.id)); });
+    $('blurb').textContent = sc.blurb; $('simhint').textContent = sc.hint; $('stTitle').textContent = sc.title[0] + sc.title[1];
+    $('formula').innerHTML = sc.formula;
+    $('tips').innerHTML = sc.tips.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
+    document.title = PAGE_TITLE + ' · ' + sc.chip;
+    $('track').style.touchAction = sc.drag ? 'pan-y' : '';
+    $('track').style.cursor = sc.drag ? 'crosshair' : '';
+  }
+  function buildRatios() {
+    var sc = cur(), blocks = sc.ratios(P(), S.res);
+    $('ratios').innerHTML = blocks.map(function (b) {
+      return '<div class="rb"><h3>' + esc(b.t) + '</h3><table>' + b.rows.map(function (r) { return '<tr' + (r.cur ? ' class="cur"' : '') + '><td>' + esc(r.k) + '</td><td>' + esc(r.v) + '</td><td>' + esc(r.r) + '</td></tr>'; }).join('') + '</table></div>';
+    }).join('');
+  }
+  function updateReads(s) {
+    var sc = cur(), rs = sc.reads(P(), s, S.res, S.t);
+    $('reads').innerHTML = rs.map(function (r) { return '<div class="read ' + r[2] + '"><div class="k">' + esc(r[0]) + '</div><div class="v">' + esc(r[1]) + '</div></div>'; }).join('');
+    $('meet').innerHTML = sc.meet(P(), s, S.res, S.t);
+  }
+
+  function draw() {
+    if (!S.res) return;
+    var sc = cur(), g = setup($('track')), s = at(S.res, S.t);
+    sc.draw(g.ctx, g.W, g.H, P(), s, faces(), { t: S.t, res: S.res, crowd: crowd() });
+    updateReads(s);
+    drawGraph();
+    $('tlabel').textContent = fmt(S.t, 1) + (sc.tu || ' s'); $('tslider').value = S.t;
+  }
+  function valAt(pts, x) {
+    if (!pts.length) return 0;
+    if (x <= pts[0][0]) return pts[0][1];
+    for (var i = 1; i < pts.length; i++) if (pts[i][0] >= x) { var a = pts[i - 1], b = pts[i], k = (x - a[0]) / ((b[0] - a[0]) || 1); return lerp(a[1], b[1], k); }
+    return pts[pts.length - 1][1];
+  }
+  function drawGraph() {
+    var sc = cur(), s = at(S.res, S.t), gr = sc.graph(S.res, P(), S.gm[S.id], s, S.t), yr = gr.yr;
+    if (!yr) {
+      var lo = 1e18, hi = -1e18;
+      gr.s.forEach(function (ln) { ln.pts.forEach(function (p) { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); }); });
+      if (!gr.noZero) lo = Math.min(lo, 0);
+      if (lo > hi) { lo = 0; hi = 1; }
+      yr = padRange(lo, hi);
+    }
+    var dots = gr.dots, spaceX = !!gr.xr;
+    if (!dots) {
+      dots = [];
+      gr.s.forEach(function (ln) { if (ln.hidden || ln.nodot) return; dots.push({ x: S.t, y: valAt(ln.pts, S.t), color: ln.color }); });
+    }
+    plot($('graph'), { xr: gr.xr || [0, S.res.T], yr: yr, xl: gr.xl || ('t (' + (sc.tu ? sc.tu.trim() : 's') + ')'), yl: gr.yl, series: gr.s, vx: spaceX ? (gr.vx === undefined ? null : gr.vx) : S.t, dots: dots });
+    $('legend').innerHTML = gr.s.filter(function (ln) { return ln.name; }).map(function (ln) { return '<span><i style="background:' + ln.color + (ln.dash ? ';opacity:.7' : '') + '"></i>' + esc(ln.name) + '</span>'; }).join('') + (gr.note ? '<span class="gnote">' + esc(gr.note) + '</span>' : '');
+  }
+  /* tính lại mô phỏng: restart = về 0 rồi chạy, refresh = giữ thời điểm đang xem */
+  function compute() { var sc = cur(); S.res = sc.sim(P()); $('tslider').max = S.res.T; buildRatios(); }
+  function restart() {
+    if (S.pend) return;
+    S.pend = requestAnimationFrame(function () { S.pend = 0; compute(); S.t = 0; play(true); });
+  }
+  function refresh() {
+    if (S.pend) return;
+    S.pend = requestAnimationFrame(function () { S.pend = 0; compute(); S.t = Math.min(S.t, S.res.T); if (!S.playing) draw(); });
+  }
+  function play(on) {
+    S.playing = on; $('play').textContent = on ? 'Dừng' : (S.t >= S.res.T - 0.01 ? 'Chạy lại' : 'Chạy'); S.last = 0;
+    if (on) { if (!S.raf) S.raf = requestAnimationFrame(frame); } else draw();
+  }
+  /* chỉ một vòng lặp hoạt hình tại một thời điểm (đổi thông số liên tục không làm chậm máy) */
+  function frame(now) {
+    S.raf = 0;
+    if (!S.playing) return;
+    if (!S.last) S.last = now;
+    var dt = Math.min(0.1, (now - S.last) / 1000); S.last = now;
+    S.t = S.t + dt * S.speed;
+    if (S.t >= S.res.T) {
+      if (cur().loop) S.t = S.t % S.res.T;
+      else { S.t = S.res.T; S.playing = false; draw(); $('play').textContent = 'Chạy lại'; return; }
+    }
+    draw();
+    S.raf = requestAnimationFrame(frame);
+  }
+  function selectScene(id) {
+    if (S.pend) { cancelAnimationFrame(S.pend); S.pend = 0; }
+    S.id = id; var sc = cur(); S.speed = sc.speed; $('speed').value = String(sc.speed);
+    buildStatic(); buildParams(); buildSlots(); buildModes(); compute(); S.t = 0; play(true);
+    try { history.replaceState(null, '', '#' + id); } catch (e) { /* bỏ qua */ }
+  }
+  function afterRoster() { renderRoster(); buildSlots(); draw(); }
+
+  $('play').addEventListener('click', function () {
+    if (S.playing) { play(false); return; }
+    if (S.t >= S.res.T - 0.01) S.t = 0;
+    play(true);
+  });
+  $('reset').addEventListener('click', function () { S.t = 0; play(false); });
+  $('tslider').addEventListener('input', function () { S.t = parseFloat(this.value); S.playing = false; $('play').textContent = 'Chạy'; draw(); });
+  $('speed').addEventListener('change', function () { S.speed = parseFloat(this.value); });
+  $('gmode').addEventListener('change', function () { S.gm[S.id] = this.value; drawGraph(); });
+  window.addEventListener('resize', function () { draw(); });
+
+  /* kéo hoặc chạm trên hình để đặt điểm M (cảnh nào có sc.drag) */
+  (function () {
+    var trk = $('track');
+    function pos(e) { var r = trk.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top, W: r.width, H: r.height }; }
+    function apply(e, first) {
+      var sc = cur(); if (!sc.drag) return false;
+      var p = pos(e), ok = sc.drag(p.x, p.y, p.W, p.H, P(), first);
+      if (ok) { syncParams(); refresh(); }
+      return ok;
+    }
+    trk.addEventListener('pointerdown', function (e) { if (apply(e, true)) { S.drag = true; try { trk.setPointerCapture(e.pointerId); } catch (x) { /* bỏ qua */ } } });
+    trk.addEventListener('pointermove', function (e) { if (S.drag) apply(e, false); });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (ev) { trk.addEventListener(ev, function () { S.drag = false; }); });
+  })();
+
+  /* ---------- Chỉnh ảnh ---------- */
+  var ed = { img: null, crop: newCrop(), name: '', sticker: null, drag: null };
+  var edC = $('edCanvas'), edX = edC.getContext('2d');
+  function drawEditor() {
+    if (!ed.img) return;
+    ed.sticker = makeSticker(ed.img, ed.crop);
+    edX.clearRect(0, 0, SZ, SZ);
+    for (var y = 0; y < SZ; y += 20) for (var x = 0; x < SZ; x += 20) { edX.fillStyle = ((x + y) / 20) % 2 ? '#241f29' : '#1b171f'; edX.fillRect(x, y, 20, 20); }
+    edX.drawImage(ed.sticker, 0, 0);
+  }
+  function syncEditor() {
+    var cr = ed.crop;
+    $('edZoom').value = cr.zoom; $('edX').value = cr.ox; $('edY').value = cr.oy; $('edRot').value = cr.rot;
+    document.querySelectorAll('input[name=shape]').forEach(function (r) { r.checked = r.value === cr.shape; });
+    $('edHint').textContent = cr.shape === 'cutout' ? 'Dùng ảnh PNG đã xóa nền: viền trắng ôm theo hình người.' : 'Kéo ảnh để dời vị trí, cuộn chuột hoặc dùng thanh trượt để phóng to.';
+  }
+  function openEditor() { $('edTitle').textContent = 'Chỉnh ảnh · ' + ed.name; syncEditor(); $('editor').hidden = false; drawEditor(); $('edDone').focus(); }
+  function closeEditor() { $('editor').hidden = true; ed.img = null; }
+  $('edZoom').addEventListener('input', function () { ed.crop.zoom = parseFloat(this.value); drawEditor(); });
+  $('edX').addEventListener('input', function () { ed.crop.ox = parseFloat(this.value); drawEditor(); });
+  $('edY').addEventListener('input', function () { ed.crop.oy = parseFloat(this.value); drawEditor(); });
+  $('edRot').addEventListener('input', function () { ed.crop.rot = parseFloat(this.value); drawEditor(); });
+  document.querySelectorAll('input[name=shape]').forEach(function (r) { r.addEventListener('change', function () { if (!this.checked) return; ed.crop.shape = this.value; syncEditor(); drawEditor(); }); });
+  $('edReset').addEventListener('click', function () { ed.crop = newCrop(); syncEditor(); drawEditor(); });
+  $('edCancel').addEventListener('click', closeEditor);
+  $('editor').addEventListener('pointerdown', function (e) { if (e.target === this) closeEditor(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('editor').hidden) closeEditor(); });
+  edC.addEventListener('pointerdown', function (e) { ed.drag = { x: e.clientX, y: e.clientY }; edC.setPointerCapture(e.pointerId); });
+  edC.addEventListener('pointermove', function (e) {
+    if (!ed.drag || !ed.img) return;
+    var cr = ed.crop, rect = edC.getBoundingClientRect(), ratio = SZ / rect.width;
+    var dxc = (e.clientX - ed.drag.x) * ratio, dyc = (e.clientY - ed.drag.y) * ratio;
+    ed.drag = { x: e.clientX, y: e.clientY };
+    if (cr.shape === 'cutout') { cr.ox += dxc / (SZ / 2); cr.oy += dyc / (SZ / 2); }
+    else {
+      var Rr = (SZ - 2 * PAD) / 2, side = Math.min(ed.img.naturalWidth, ed.img.naturalHeight) / cr.zoom;
+      cr.ox += (dxc * side / (2 * Rr)) / (ed.img.naturalWidth / 2); cr.oy += (dyc * side / (2 * Rr)) / (ed.img.naturalHeight / 2);
+    }
+    cr.ox = clamp(cr.ox, -1, 1); cr.oy = clamp(cr.oy, -1, 1);
+    $('edX').value = cr.ox; $('edY').value = cr.oy; drawEditor();
+  });
+  edC.addEventListener('pointerup', function () { ed.drag = null; }); edC.addEventListener('pointercancel', function () { ed.drag = null; });
+  edC.addEventListener('wheel', function (e) { if (!ed.img) return; e.preventDefault(); ed.crop.zoom = clamp(ed.crop.zoom * (1 - e.deltaY * 0.001), 0.5, 4); $('edZoom').value = ed.crop.zoom; drawEditor(); }, { passive: false });
+  $('edDone').addEventListener('click', function () {
+    if (!ed.img) return;
+    var c2 = document.createElement('canvas'); c2.width = c2.height = STORE; c2.getContext('2d').drawImage(ed.sticker || makeSticker(ed.img, ed.crop), 0, 0, STORE, STORE);
+    var png = c2.toDataURL('image/png'), r = { id: 'r' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), name: ed.name, png: png, demo: false, cv: c2 };
+    R = R.filter(function (x) { return !x.demo; }).concat([r]);
+    var ok = saveRoster();
+    $('rMsg').textContent = ok ? 'Đã thêm ' + ed.name + '. Chọn bạn này ở mục Nhân vật.' : 'Đã thêm ' + ed.name + ', nhưng trình duyệt không cho lưu lâu dài. Ảnh dùng được đến khi đóng trang.';
+    $('rName').value = '';
+    SCENES.forEach(function (sc) { S.assign[sc.id] = S.assign[sc.id].map(function (a, i) { return rosterGet(a) ? a : R[i % R.length].id; }); });
+    ed.img = null; $('editor').hidden = true; afterRoster();
+  });
+  $('rFile').addEventListener('change', function () {
+    var f = this.files[0]; this.value = ''; if (!f) return;
+    var nm = $('rName').value.trim(); if (!nm) { $('rMsg').textContent = 'Em nhập tên học sinh trước rồi hãy chọn ảnh nhé.'; return; }
+    var rd = new FileReader();
+    rd.onload = function () {
+      var im = new Image();
+      im.onload = function () { ed.img = im; ed.crop = newCrop(); ed.name = nm; openEditor(); };
+      im.onerror = function () { $('rMsg').textContent = 'Không đọc được ảnh này. Em thử ảnh JPG hoặc PNG khác.'; };
+      im.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  });
+  var wipeArm = 0;
+  $('rWipe').addEventListener('click', function () {
+    var btn = this;
+    if (!wipeArm) { wipeArm = 1; btn.textContent = 'Bấm lần nữa để xóa'; setTimeout(function () { wipeArm = 0; btn.textContent = 'Xóa hết ảnh'; }, 3000); return; }
+    wipeArm = 0; btn.textContent = 'Xóa hết ảnh';
+    R = R.filter(function (r) { return r.demo; }); saveRoster();
+    try { localStorage.removeItem(KEY); } catch (e) { /* bỏ qua */ }
+    SCENES.forEach(function (sc) { S.assign[sc.id] = S.assign[sc.id].map(function (a, i) { return rosterGet(a) ? a : R[i % R.length].id; }); });
+    $('rMsg').textContent = 'Đã xóa toàn bộ ảnh học sinh khỏi trình duyệt này.'; afterRoster();
+  });
+
+  /* ---------- Khởi động ---------- */
+  loadRoster(); buildNav(); renderRoster();
+  var startId = SCENES[0].id;
+  try { var hs = decodeURIComponent(location.hash.replace('#', '')); if (hs && sceneById(hs)) startId = hs; } catch (e) { /* bỏ qua */ }
+  selectScene(startId);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { phCache = {}; buildSlots(); draw(); });
+})();
+</script>
+
+<style>
+#cx-tools{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:9999;display:flex;gap:8px;font-family:"Be Vietnam Pro",system-ui,sans-serif}
+#cx-tools button{display:inline-flex;align-items:center;gap:7px;background:#0b0a0c;color:#f6eef2;border:1px solid #ff4fa3;border-radius:999px;padding:10px 16px;font:600 14px/1 "Be Vietnam Pro",system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.5)}
+#cx-tools button:hover{background:#ff4fa3;color:#0b0a0c}
+#cx-tools button:focus-visible{outline:3px solid #ffa6d2;outline-offset:2px}
+#cx-tools button.rec{background:#e5173f;border-color:#e5173f;color:#fff}
+#cx-tools svg{width:18px;height:18px;flex:none}
+#cx-toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);z-index:9999;background:#151317;color:#f6eef2;border:1px solid #ff4fa3;border-radius:8px;padding:10px 16px;font:500 14px/1.4 "Be Vietnam Pro",system-ui,sans-serif;max-width:min(92vw,420px);text-align:center}
+#cx-res{position:fixed;inset:0;z-index:10000;background:rgba(5,4,6,.82);display:grid;place-items:center;padding:16px;font-family:"Be Vietnam Pro",system-ui,sans-serif}
+#cx-res[hidden]{display:none}
+#cx-res .bx{background:#151317;color:#f6eef2;border:1px solid #ff4fa3;border-radius:14px;max-width:min(94vw,860px);max-height:94vh;overflow:auto;padding:16px;display:grid;gap:12px}
+#cx-res h2{margin:0;font:700 20px/1.2 "Be Vietnam Pro",system-ui,sans-serif}
+#cx-res img,#cx-res video{max-width:100%;max-height:60vh;border-radius:8px;background:#000;justify-self:center}
+#cx-res .ac{display:flex;gap:10px;flex-wrap:wrap}
+#cx-res .ac button{border-radius:10px;padding:12px 22px;font:700 16px/1 "Be Vietnam Pro",system-ui,sans-serif;cursor:pointer;border:1px solid #ff4fa3;background:transparent;color:#f6eef2}
+#cx-res .ac button.pri{background:#ff4fa3;color:#0b0a0c}
+#cx-res p{margin:0;color:#b3a3ae;font-size:13px}
+@media (max-width:520px){#cx-tools{left:12px;right:12px;justify-content:center}#cx-tools button{flex:1;justify-content:center;padding:11px 10px}}
+</style>
+<div id="cx-tools" role="group" aria-label="Chụp ảnh và ghi video mô phỏng">
+ <button type="button" id="cx-shot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Chụp ảnh</span></button>
+ <button type="button" id="cx-rec"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="6"/></svg><span>Ghi video</span></button>
+</div>
+<div id="cx-res" hidden role="dialog" aria-modal="true" aria-labelledby="cx-rt"></div>
+<div id="cx-toast" role="status" aria-live="polite" hidden></div>
+<script>
+(function(){
+  var WM='Physics EZ · Trần Thị Hằng';
+  var shotB=document.getElementById('cx-shot'), recB=document.getElementById('cx-rec'), toast=document.getElementById('cx-toast'), tt;
+  function say(m,ms){toast.textContent=m;toast.hidden=false;clearTimeout(tt);tt=setTimeout(function(){toast.hidden=true},ms||4000)}
+  function src(){return document.getElementById('track')}
+  function lessonName(){var h=document.querySelector('h1');return (h?h.textContent:'thi-nghiem').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'thi-nghiem'}
+  function stamp(){var d=new Date(),p=function(n){return (n<10?'0':'')+n};return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())}
+  function mark(ctx,w,h){var f=Math.max(12,Math.round(w/50));ctx.save();ctx.font='600 '+f+'px "Be Vietnam Pro",system-ui,sans-serif';ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillStyle='rgba(0,0,0,.55)';var tw=ctx.measureText(WM).width;ctx.fillRect(w-tw-f*1.2,h-f*1.9,tw+f*1.2,f*1.9);ctx.fillStyle='#ffa6d2';ctx.fillText(WM,w-f*.6,h-f*.45);ctx.restore()}
+  var resBlob=null,resName='',resUrl='';
+  async function dl(blob,name){
+    try{var c=window.claude;if(c&&c.use){var d=await c.use('downloads');if(d){await d.save({filename:name,data:blob});say('Đã lưu file.');return}}}catch(e){if(e&&e.code==='declined')return}
+    save(blob,name);say('Nếu máy không hiện hộp lưu, bấm chuột phải vào ảnh/video trong khung rồi chọn Lưu.',7000);
+  }
+  function showRes(blob,name,isVid){
+    var box=document.getElementById('cx-res');resBlob=blob;resName=name;if(resUrl)URL.revokeObjectURL(resUrl);resUrl=URL.createObjectURL(blob);
+    box.innerHTML='<div class="bx"><h2 id="cx-rt">'+(isVid?'Video đã ghi xong':'Ảnh đã chụp xong')+'</h2>'+(isVid?'<video controls playsinline src="'+resUrl+'"></video>':'<img alt="Ảnh chụp thí nghiệm" src="'+resUrl+'">')+'<div class="ac"><button type="button" class="pri" id="cx-dl">Tải về máy</button><button type="button" id="cx-x">Đóng</button></div><p>Nếu bấm "Tải về máy" mà không có file: bấm chuột phải vào '+(isVid?'video (hoặc nút ⋮)':'ảnh')+' rồi chọn '+(isVid?'Tải xuống':'Lưu ảnh thành…')+'.</p></div>';
+    box.hidden=false;
+    document.getElementById('cx-dl').addEventListener('click',function(){dl(resBlob,resName)});
+    document.getElementById('cx-x').addEventListener('click',closeRes);document.getElementById('cx-dl').focus();
+  }
+  function closeRes(){var box=document.getElementById('cx-res');var v=box.querySelector('video');if(v)v.pause();box.hidden=true;box.innerHTML=''}
+  document.getElementById('cx-res').addEventListener('mousedown',function(e){if(e.target===this)closeRes()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeRes()});
+  function save(blob,name){var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
+  function frame(c,o){var x=o.getContext('2d');x.fillStyle='#0b0a0c';x.fillRect(0,0,o.width,o.height);x.drawImage(c,0,0,o.width,o.height);mark(x,o.width,o.height)}
+  function mk(c){var o=document.createElement('canvas');o.width=c.width;o.height=c.height;return o}
+
+  shotB.addEventListener('click',function(){
+    var c=src();if(!c){say('Chưa có khung mô phỏng để chụp.');return}
+    try{
+      var o=mk(c);frame(c,o);
+      o.toBlob(function(b){
+        if(!b){say('Không chụp được ảnh. Hãy thử lại.');return}
+        showRes(b,'physics-ez-'+lessonName()+'-'+stamp()+'.png',false);
+      },'image/png');
+    }catch(e){say('Không chụp được ảnh. Hãy thử lại.')}
+  });
+
+  var mr=null,chunks=[],raf=0,timer=0,t0=0,out=null;
+  function pickType(){var t=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm','video/mp4'];for(var i=0;i<t.length;i++){if(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t[i]))return t[i]}return ''}
+  function label(s){recB.querySelector('span').textContent=s}
+  function stop(){if(mr&&mr.state!=='inactive')mr.stop()}
+  function start(){
+    var c=src();if(!c){say('Chưa có khung mô phỏng để ghi.');return}
+    if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){say('Trình duyệt này chưa hỗ trợ ghi video. Hãy dùng Chrome hoặc Edge, hoặc dùng công cụ quay màn hình của máy.',6000);return}
+    var type=pickType();out=mk(c);
+    var stream;try{stream=out.captureStream(30)}catch(e){say('Không bắt đầu ghi được.');return}
+    try{mr=new MediaRecorder(stream,type?{mimeType:type,videoBitsPerSecond:4e6}:{videoBitsPerSecond:4e6})}catch(e){say('Không bắt đầu ghi được.');return}
+    chunks=[];
+    mr.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data)};
+    mr.onstop=function(){
+      cancelAnimationFrame(raf);clearInterval(timer);recB.classList.remove('rec');label('Ghi video');
+      var mt=(mr.mimeType||type||'video/webm'),ext=/mp4/.test(mt)?'mp4':'webm';
+      var b=new Blob(chunks,{type:mt});
+      if(b.size<200){say('Video trống. Hãy ghi lại, nhớ bấm Chạy để mô phỏng chuyển động.',6000);return}
+      showRes(b,'physics-ez-'+lessonName()+'-'+stamp()+'.'+ext,true);
+    };
+    (function loop(){var cc=src();if(cc){if(out.width!==cc.width||out.height!==cc.height){/* giữ kích thước ban đầu, co dãn khung mới */}frame(cc,out)}raf=requestAnimationFrame(loop)})();
+    mr.start(500);t0=Date.now();recB.classList.add('rec');
+    timer=setInterval(function(){var s=Math.floor((Date.now()-t0)/1000);label('Dừng · '+(s<10?'0':'')+Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60));if(s>=120)stop()},250);
+    label('Dừng · 00:00');say('Đang ghi khung mô phỏng. Bấm Chạy, đổi thông số rồi bấm Dừng để lưu video.',5000);
+  }
+  recB.addEventListener('click',function(){if(mr&&mr.state==='recording')stop();else start()});
+})();
+</script>
+
+<script src="supabase-config.js"></script>
+<script src="ez.js"></script>
+</html>

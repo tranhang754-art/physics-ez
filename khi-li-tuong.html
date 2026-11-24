@@ -1,0 +1,1377 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Khí lí tưởng · Physics EZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Be+Vietnam+Pro:wght@400;500;700&display=swap">
+<style>
+/* Một trang cho Chương II Khí lí tưởng (Vật lí 12): mỗi học sinh là một phân tử khí; chọn tình huống ở trên, đổi thông số bên phải. */
+:root {
+  --ink: #0b0a0c;
+  --panel: #151317;
+  --panel-2: #211d25;
+  --line: #3a3340;
+  --pink: #ff4fa3;
+  --pink-soft: #ffa6d2;
+  --fg: #fbf4f7;
+  --mute: #c3b4bf;
+  --c-drag: #ff7a45;
+  --c-lift: #3ddc97;
+  --c-weight: #ffd23f;
+  --c-vel: #4cc9ff;
+  --c-push: #c39bff;
+  --good: #7be0a6;
+  --bad: #ff8a8a;
+  --display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+  --body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--ink); color: var(--fg); font-family: var(--body); font-size: 18px; line-height: 1.5; padding-inline: 16px; padding-block: 20px 48px; }
+.wrap { max-width: 1480px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; border-bottom: 3px solid var(--pink); padding-bottom: 14px; }
+.kicker { font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--pink); font-weight: 700; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(33px, 5.25vw, 57px); line-height: .95; margin: 4px 0 0; text-transform: uppercase; text-wrap: balance; }
+h1 span { color: var(--pink); }
+.brand { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+h2 { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .05em; text-transform: uppercase; margin: 0; }
+.blurb { margin: 0; font-size: 20px; max-width: 78ch; }
+
+nav { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: center; }
+.ngroup { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.glabel { font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: .08em; text-transform: uppercase; padding-right: 4px; }
+.glabel.can { color: var(--c-drag); } .glabel.nang { color: var(--c-lift); }
+.chip { font: inherit; font-size: 18px; font-weight: 700; background: var(--panel-2); color: var(--fg); border: 2px solid var(--line); border-radius: 999px; padding: 8px 18px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--pink); color: var(--ink); border-color: var(--pink); }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 20px; align-items: start; }
+@media (max-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.stage, .side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card-title { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.hint { font-size: 15px; color: var(--mute); }
+canvas { display: block; width: 100%; background: #0f0d11; border-radius: 8px; border: 1px solid var(--line); }
+#track { height: 500px; }
+#graph { height: 290px; }
+.transport { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.transport .slider { flex: 1 1 220px; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.slider input[type=range] { flex: 1; min-width: 0; }
+.tval { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 84px; text-align: right; }
+button { font: inherit; font-weight: 700; font-size: 18px; cursor: pointer; background: var(--pink); color: var(--ink); border: 0; border-radius: 8px; padding: 10px 20px; }
+button.ghost { background: transparent; color: var(--fg); border: 2px solid var(--pink); }
+button:hover:not(:disabled) { filter: brightness(1.12); }
+button:focus-visible, input:focus-visible, select:focus-visible, .filebtn:focus-within, .chip:focus-visible { outline: 3px solid var(--pink-soft); outline-offset: 2px; }
+.filebtn { position: relative; display: inline-block; text-align: center; cursor: pointer; font-weight: 700; font-size: 16px; color: var(--fg); border: 2px solid var(--pink); border-radius: 8px; padding: 8px 14px; }
+.filebtn input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+input[type=range], input[type=radio] { accent-color: var(--pink); }
+input[type=text], select { font: inherit; font-size: 17px; width: 100%; background: var(--panel-2); color: var(--fg); border: 2px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+label.f { display: flex; flex-direction: column; gap: 4px; font-size: 15px; color: var(--mute); }
+
+.legend { display: flex; gap: 8px 20px; flex-wrap: wrap; font-size: 16px; }
+.legend i { display: inline-block; width: 24px; height: 5px; vertical-align: middle; margin-right: 8px; border-radius: 3px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { background: var(--panel-2); color: var(--fg); border: 2px solid var(--line); padding: 7px 12px; font-size: 16px; }
+.seg button[aria-pressed="true"] { background: var(--pink); color: var(--ink); border-color: var(--pink); }
+.pitem { display: flex; flex-direction: column; gap: 6px; }
+.plabel { display: flex; justify-content: space-between; gap: 8px; font-size: 17px; font-weight: 700; }
+.plabel b { color: var(--pink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.slot { display: flex; align-items: center; gap: 10px; }
+canvas.avatar { width: 62px; height: 62px; flex: none; border: 0; background: transparent; border-radius: 0; }
+.slot .names { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; font-size: 15px; color: var(--mute); }
+
+.reads { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.read { background: var(--panel-2); border-radius: 8px; padding: 10px 12px; min-width: 0; border-left: 5px solid var(--line); }
+.read .k { font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+.read .v { font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.read.drag { border-left-color: var(--c-drag); } .read.lift { border-left-color: var(--c-lift); } .read.weight { border-left-color: var(--c-weight); } .read.vel { border-left-color: var(--c-vel); } .read.push { border-left-color: var(--c-push); }
+.note { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); font-size: 17px; }
+.note strong { color: var(--pink); }
+.formula { font-size: 20px; font-weight: 700; display: flex; flex-direction: column; gap: 4px; }
+.formula small { font-size: 15px; font-weight: 400; color: var(--mute); }
+.formula code, code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--pink-soft); }
+
+.ratios { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.rb { background: var(--panel-2); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; border-top: 4px solid var(--pink); }
+.rb h3 { margin: 0; font-size: 17px; color: var(--pink-soft); }
+.rb table { width: 100%; border-collapse: collapse; font-size: 17px; font-variant-numeric: tabular-nums; }
+.rb td { padding: 4px 4px; border-bottom: 1px solid var(--line); }
+.rb td:last-child { text-align: right; font-weight: 700; color: var(--c-weight); white-space: nowrap; }
+.rb tr.cur td:first-child { color: var(--pink-soft); font-weight: 700; }
+.tips { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-size: 18px; }
+
+.roster { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+.roster li { display: flex; align-items: center; gap: 8px; background: var(--panel-2); border-radius: 8px; padding: 5px 8px; min-width: 0; }
+.roster img { width: 40px; height: 40px; border-radius: 50%; flex: none; }
+.roster .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 17px; }
+.roster button { padding: 4px 10px; font-size: 14px; }
+.overlay { position: fixed; inset: 0; z-index: 10; background: rgba(5, 4, 6, .8); display: grid; place-items: center; padding: 16px; overflow: auto; }
+.sheet { background: var(--panel); border: 2px solid var(--pink); border-radius: 12px; padding: 16px; width: min(400px, 100%); display: flex; flex-direction: column; gap: 12px; }
+#edCanvas { width: min(300px, 100%); height: auto; aspect-ratio: 1; align-self: center; touch-action: none; cursor: grab; }
+fieldset.shapes { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+fieldset.shapes legend { font-size: 15px; color: var(--mute); padding: 0; margin-bottom: 4px; }
+fieldset.shapes label { font-size: 17px; display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.sl { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 15px; color: var(--mute); }
+.sheet-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+<style>
+:root[data-theme="light"]{--ink:#fbf4f7;--panel:#ffffff;--panel-2:#f6e8ef;--panel2:#f6e8ef;--line:#e0c6d3;--fg:#1d1319;--mute:#6c5562;--pink:#d4206c;--pink-soft:#b8185b;
+--good:#17825a;--bad:#c0262d;--yellow:#9a6100;--c-drag:#c2410c;--c-lift:#0f8a56;--c-weight:#946200;--c-vel:#0369a1;--c-push:#6d3fd1;--navbg:#ffffff;--navline:#e0c6d3;--navfg:#1d1319;color-scheme:light}
+.sn{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--navbg,#0b0a0c);border:1px solid var(--navline,#3a3340);border-bottom:2px solid #ff4fa3;border-radius:8px;padding:8px 16px;margin:0 auto 16px;max-width:1280px;font-family:"Be Vietnam Pro",system-ui,sans-serif;font-size:20px;line-height:1.3}
+.sn a{color:var(--navfg,#f6eef2);text-decoration:none;padding:6px 2px;border-bottom:2px solid transparent}
+.sn a:hover{color:var(--pink-soft,#ffa6d2)}
+.sn a[aria-current="page"],.sn .br b{color:var(--pink,#ff4fa3)}
+.sn .mode{background:transparent;color:var(--navfg,#f6eef2);border:1px solid var(--pink,#ff4fa3);border-radius:999px;padding:6px 14px;font:600 16px/1.2 "Be Vietnam Pro",system-ui,sans-serif;cursor:pointer}
+.sn .mode:hover{background:var(--pink,#ff4fa3);color:var(--ink,#0b0a0c)}
+.sn .mode:focus-visible{outline:2px solid var(--pink-soft,#ffa6d2);outline-offset:2px}
+.sn .mode{width:auto;flex:none;margin:0;letter-spacing:normal;text-transform:none;filter:none}
+.sn a[aria-current="page"]{border-bottom-color:var(--pink,#ff4fa3);font-weight:700}
+.sn .br{font-family:"Barlow Condensed","Arial Narrow",Impact,sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;margin-right:auto;border-bottom:0}
+.sn .br b{color:var(--pink,#ff4fa3);font-weight:800}
+.sn a.up{background:#ffd34d;color:#1a1300!important;border-radius:999px;padding:5px 14px;font-size:17px;font-weight:700;border-bottom:0!important}
+.sn a.up:hover{background:#ffe27a}
+.sn a:focus-visible{outline:2px solid #ffa6d2;outline-offset:2px}
+</style><nav class="sn" aria-label="Điều hướng chính"><a class="br" href="index.html">Physics <b>EZ</b></a><a href="index.html">Trang chủ</a><a href="thi-nghiem.html" aria-current="page">Thí nghiệm mô phỏng gần gũi</a><a href="tro-li-ao.html">Trợ lí AI soạn câu lệnh cho giáo viên</a><a href="quan-ly.html" class="up">Tải lên</a><button type="button" class="mode js-mode" aria-label="Đổi giao diện sáng tối">Chế độ sáng</button></nav><script>
+(function(){var r=document.documentElement,k='physics-ez.theme',t='dark';
+try{t=localStorage.getItem(k)||'dark'}catch(e){}
+r.setAttribute('data-theme',t);
+function lab(btn){btn.textContent=(r.getAttribute('data-theme')==='light')?'Chế độ tối':'Chế độ sáng'}
+function wire(){var bs=document.querySelectorAll('.js-mode');for(var i=0;i<bs.length;i++){(function(b){lab(b);b.addEventListener('click',function(){var n=r.getAttribute('data-theme')==='light'?'dark':'light';r.setAttribute('data-theme',n);try{localStorage.setItem(k,n)}catch(e){}var all=document.querySelectorAll('.js-mode');for(var j=0;j<all.length;j++)lab(all[j])})})(bs[i])}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire);else wire();
+})();
+</script>
+<style>.backbar{max-width:1240px;margin:-6px auto 10px;font-family:"Be Vietnam Pro",system-ui,sans-serif}
+.backbar a{display:inline-block;background:transparent;color:var(--fg,#f6eef2);border:2px solid var(--pink,#ff4fa3);border-radius:999px;padding:7px 18px;font-weight:700;font-size:16px;text-decoration:none}
+.backbar a:hover{background:var(--pink,#ff4fa3);color:var(--ink,#0b0a0c)}
+.backbar a:focus-visible{outline:3px solid var(--pink-soft,#ffa6d2);outline-offset:2px}</style>
+<style>
+.glabel.ga { color: var(--c-vel); } .glabel.gb { color: var(--pink); }
+.crowd { display: flex; flex-wrap: wrap; gap: 4px; }
+.crowd canvas { width: 34px; height: 34px; border: 0; background: transparent; border-radius: 0; }
+.gnote { color: var(--mute); }
+.read .v { font-size: 30px; }
+</style>
+<div class="backbar"><a id="backlnk" href="thi-nghiem.html#khi-li-tuong">← Về Lớp 12 · Khí lí tưởng</a></div>
+
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kicker">Vật lí 12 · Kết nối tri thức · Bài 8 – 12</div>
+      <h1>Khí <span>lí tưởng</span></h1>
+    </div>
+    <div class="brand">Physics EZ</div>
+  </header>
+  <nav aria-label="Chọn tình huống">
+    <div class="ngroup" id="gA"><span class="glabel ga">Mô hình phân tử</span></div>
+    <div class="ngroup" id="gB"><span class="glabel gb">Các định luật</span></div>
+  </nav>
+  <p class="blurb" id="blurb"></p>
+
+
+  <div class="layout">
+    <div class="stage">
+      <section class="card" aria-label="Mô phỏng">
+        <div class="card-title"><h2 id="stTitle">Mô phỏng</h2><span class="hint" id="simhint"></span></div>
+        <canvas id="track" aria-label="Mô phỏng"></canvas>
+        <div class="transport">
+          <button id="play" type="button">Chạy</button>
+          <button id="reset" type="button" class="ghost">Về 0 s</button>
+          <div class="slider"><input id="tslider" type="range" min="0" max="40" step="0.02" value="0" aria-label="Thời gian"><span class="tval" id="tlabel">0,0 s</span></div>
+          <label class="f" style="width:130px">Tốc độ phát<select id="speed"><option value="0.5">0,5×</option><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option></select></label>
+        </div>
+      </section>
+      <section class="card" aria-label="Đồ thị">
+        <div class="card-title"><h2>Đồ thị theo thời gian</h2>
+          <label class="f" style="width:300px;max-width:100%"><select id="gmode" aria-label="Loại đồ thị"></select></label></div>
+        <canvas id="graph" aria-label="Đồ thị"></canvas>
+        <div class="legend" id="legend"></div>
+      </section>
+      <section class="card" aria-label="Bảng tỉ lệ">
+        <div class="card-title"><h2>Số liệu để so sánh</h2><span class="hint">tính ở thông số đang chọn</span></div>
+        <div class="ratios" id="ratios"></div>
+      </section>
+      <section class="card" aria-label="Gợi ý thí nghiệm">
+        <h2>Gợi ý thí nghiệm</h2>
+        <ul class="tips" id="tips"></ul>
+      </section>
+    </div>
+
+    <aside class="side">
+      <section class="card"><h2>Nhân vật</h2><div id="slots" style="display:flex;flex-direction:column;gap:12px"></div></section>
+      <section class="card"><h2>Thông số</h2><div id="params" style="display:flex;flex-direction:column;gap:16px"></div></section>
+      <section class="card"><h2>Số đo lúc này</h2>
+        <div class="reads" id="reads"></div>
+        <p class="note" id="meet"></p>
+        <div class="formula" id="formula"></div>
+      </section>
+      <section class="card"><h2>Lớp của em</h2>
+        <ul class="roster" id="roster"></ul>
+        <label class="f">Tên<input id="rName" type="text" maxlength="24" placeholder="Ví dụ: Minh Anh"></label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <label class="filebtn" id="rFileLbl">Chọn ảnh<input id="rFile" type="file" accept="image/*"></label>
+          <button id="rWipe" type="button" class="ghost">Xóa hết ảnh</button>
+        </div>
+        <p class="hint" id="rMsg" style="margin:0">Ảnh chỉ nằm trong trình duyệt trên máy này. Nhập tên rồi chọn ảnh, chỉnh khung và bấm Lưu.</p>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<div class="overlay" id="editor" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+    <h2 id="edTitle">Chỉnh ảnh</h2>
+    <canvas id="edCanvas" width="300" height="300" aria-label="Xem trước sticker"></canvas>
+    <p class="hint" id="edHint" style="margin:0"></p>
+    <fieldset class="shapes"><legend>Hình khung</legend>
+      <label><input type="radio" name="shape" value="circle" checked> Tròn</label>
+      <label><input type="radio" name="shape" value="round"> Vuông bo góc</label>
+      <label><input type="radio" name="shape" value="cutout"> Cắt theo hình người (ảnh PNG đã xóa nền)</label>
+    </fieldset>
+    <label class="sl">Thu phóng<input id="edZoom" type="range" min="0.5" max="4" step="0.01" value="1"></label>
+    <label class="sl">Dời ngang<input id="edX" type="range" min="-1" max="1" step="0.01" value="0"></label>
+    <label class="sl">Dời dọc<input id="edY" type="range" min="-1" max="1" step="0.01" value="0"></label>
+    <label class="sl">Xoay<input id="edRot" type="range" min="-45" max="45" step="1" value="0"></label>
+    <div class="sheet-actions">
+      <button id="edCancel" type="button" class="ghost">Hủy</button>
+      <button id="edReset" type="button" class="ghost">Đặt lại</button>
+      <button id="edDone" type="button">Lưu vào lớp</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var PINK = '#ff4fa3', FG = '#fbf4f7', MUTE = '#c3b4bf', LINE = '#3a3340', INK = '#0f0d11', DARK = '#1a1620';
+  var C_DRAG = '#ff7a45', C_LIFT = '#3ddc97', C_W = '#ffd23f', C_V = '#4cc9ff', C_PUSH = '#c39bff';
+  var SZ = 300, PAD = 18, BORDER = 10, STORE = 192, G = 9.8;
+  var $ = function (id) { return document.getElementById(id); };
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function fmt(n, d) {
+    if (d === undefined) d = 1;
+    if (!isFinite(n)) return '—';
+    var r = Math.round(n * Math.pow(10, d)) / Math.pow(10, d);
+    return r.toLocaleString('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function fmtN(n) { return n >= 1000 ? fmt(n, 0) : n >= 100 ? fmt(n, 0) : n >= 10 ? fmt(n, 1) : fmt(n, 2); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function niceStep(span, target) {
+    var raw = span / target, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+    return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p;
+  }
+  function padRange(lo, hi) {
+    if (hi - lo < 1e-9) { return [lo - 1, hi + 1]; }
+    var p = (hi - lo) * 0.08; return [lo - p, hi + p];
+  }
+  function lerp(a, b, k) { return a + (b - a) * k; }
+  function rr(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function setup(c) {
+    var dpr = window.devicePixelRatio || 1, r = c.getBoundingClientRect();
+    var w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    var ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, r.width, r.height);
+    return { ctx: ctx, W: r.width, H: r.height };
+  }
+  var FONT = '"Be Vietnam Pro", system-ui, sans-serif';
+  function label(ctx, text, x, y, color, size, align) {
+    ctx.font = '700 ' + (size || 17) + 'px ' + FONT;
+    ctx.textAlign = align || 'left'; ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(12,10,14,.9)';
+    ctx.strokeText(text, x, y); ctx.fillStyle = color; ctx.fillText(text, x, y);
+  }
+  /* mũi tên lực: từ (x,y) theo hướng (dx,dy) dài len px */
+  function force(ctx, x, y, dx, dy, len, color, text, o) {
+    o = o || {};
+    if (len < 2) return;
+    var n = Math.hypot(dx, dy) || 1; dx /= n; dy /= n;
+    var x2 = x + dx * len, y2 = y + dy * len, w = o.w || 7, h = Math.max(16, w * 2.6);
+    var a = Math.atan2(dy, dx);
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (o.dash) ctx.setLineDash([9, 7]);
+    ctx.strokeStyle = 'rgba(12,10,14,.85)'; ctx.lineWidth = w + 4;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2 - dx * h * 0.5, y2 - dy * h * 0.5); ctx.stroke();
+    ctx.strokeStyle = color; ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2 - dx * h * 0.5, y2 - dy * h * 0.5); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - h * Math.cos(a - 0.5), y2 - h * Math.sin(a - 0.5)); ctx.lineTo(x2 - h * Math.cos(a + 0.5), y2 - h * Math.sin(a + 0.5)); ctx.closePath();
+    ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = 'rgba(12,10,14,.85)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+    if (text) {
+      var side = o.side || (Math.abs(dy) > Math.abs(dx) ? 'r' : 'u');
+      var tx = x2, ty = y2;
+      if (side === 'r') { tx = x2 + 14; ty = y2 - dy * 6; label(ctx, text, tx, ty, color, o.size || 17, 'left'); }
+      else if (side === 'l') { label(ctx, text, x2 - 14, y2, color, o.size || 17, 'right'); }
+      else if (side === 'u') { label(ctx, text, x2, y2 - 18, color, o.size || 17, 'center'); }
+      else { label(ctx, text, x2, y2 + 20, color, o.size || 17, 'center'); }
+    }
+  }
+
+  /* ---------- Đồ thị ---------- */
+  function plot(c, o) {
+    var g = setup(c), ctx = g.ctx, W = g.W, H = g.H;
+    var ml = 62, mr = 20, mt = 16, mb = 42, pw = W - ml - mr, ph = H - mt - mb;
+    var x0 = o.xr[0], x1 = o.xr[1], y0 = o.yr[0], y1 = o.yr[1];
+    if (x1 - x0 < 1e-9) x1 = x0 + 1;
+    if (y1 - y0 < 1e-9) { y0 -= 1; y1 += 1; }
+    function TX(x) { return ml + (x - x0) / (x1 - x0) * pw; }
+    function TY(y) { return mt + (1 - (y - y0) / (y1 - y0)) * ph; }
+    ctx.font = '14px ' + FONT; ctx.lineWidth = 1;
+    var sy = niceStep(y1 - y0, 5), dy = sy >= 1 ? 0 : Math.ceil(-Math.log10(sy) - 1e-9);
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (var k = Math.ceil(y0 / sy - 1e-9); k * sy <= y1 + 1e-9; k++) {
+      var yy = k * sy, py = TY(yy);
+      ctx.strokeStyle = LINE; ctx.beginPath(); ctx.moveTo(ml, py); ctx.lineTo(ml + pw, py); ctx.stroke();
+      ctx.fillStyle = MUTE; ctx.fillText(fmt(yy, dy), ml - 8, py);
+    }
+    var sx = niceStep(x1 - x0, 6), dx = sx >= 1 ? 0 : Math.ceil(-Math.log10(sx) - 1e-9);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (var j = Math.ceil(x0 / sx - 1e-9); j * sx <= x1 + 1e-9; j++) {
+      var xx = j * sx, px = TX(xx);
+      ctx.strokeStyle = LINE; ctx.beginPath(); ctx.moveTo(px, mt); ctx.lineTo(px, mt + ph); ctx.stroke();
+      ctx.fillStyle = MUTE; ctx.fillText(fmt(xx, dx), px, mt + ph + 7);
+    }
+    ctx.fillStyle = MUTE; ctx.textAlign = 'right'; ctx.fillText(o.xl || '', ml + pw, mt + ph + 22);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(o.yl || '', 8, 0);
+    if (y0 < 0 && y1 > 0) { ctx.strokeStyle = MUTE; ctx.beginPath(); ctx.moveTo(ml, TY(0)); ctx.lineTo(ml + pw, TY(0)); ctx.stroke(); }
+    ctx.save(); ctx.beginPath(); ctx.rect(ml, mt, pw, ph); ctx.clip();
+    (o.series || []).forEach(function (s) {
+      ctx.strokeStyle = s.color; ctx.lineWidth = s.w || 4; ctx.lineJoin = 'round';
+      ctx.setLineDash(s.dash || []); ctx.beginPath();
+      s.pts.forEach(function (p, i) { if (i === 0) ctx.moveTo(TX(p[0]), TY(p[1])); else ctx.lineTo(TX(p[0]), TY(p[1])); });
+      ctx.stroke(); ctx.setLineDash([]);
+    });
+    if (o.vx !== undefined && o.vx !== null) {
+      ctx.setLineDash([5, 4]); ctx.strokeStyle = MUTE; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(TX(o.vx), mt); ctx.lineTo(TX(o.vx), mt + ph); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.restore();
+    (o.dots || []).forEach(function (d) {
+      ctx.fillStyle = d.color; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(TX(d.x), TY(d.y), 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    });
+  }
+
+  /* ---------- Sticker mặt học sinh ---------- */
+  var phCache = {};
+  function placeholder(initial, fill) {
+    var key = initial + fill;
+    if (phCache[key]) return phCache[key];
+    var c = document.createElement('canvas'); c.width = c.height = SZ;
+    var ctx = c.getContext('2d'), cx = SZ / 2, R = (SZ - 2 * PAD) / 2;
+    ctx.beginPath(); ctx.arc(cx, cx, R, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cx, R - BORDER, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill();
+    ctx.fillStyle = INK;
+    ctx.font = '800 ' + Math.round(R * 1.1) + 'px "Barlow Condensed", Impact, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(initial, cx, cx + 4);
+    phCache[key] = c; return c;
+  }
+  function shapePath(ctx, cx, cy, r, shape) {
+    if (shape === 'round') rr(ctx, cx - r, cy - r, 2 * r, 2 * r, r * 0.42);
+    else { ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); }
+  }
+  function newCrop() { return { zoom: 1, ox: 0, oy: 0, rot: 0, shape: 'circle' }; }
+  function makeSticker(img, cr) {
+    var c = document.createElement('canvas'); c.width = c.height = SZ;
+    var ctx = c.getContext('2d'), cx = SZ / 2, cy = SZ / 2, R = (SZ - 2 * PAD) / 2;
+    var iw = img.naturalWidth, ih = img.naturalHeight;
+    if (cr.shape === 'cutout') {
+      var t = document.createElement('canvas'); t.width = t.height = SZ;
+      var tc = t.getContext('2d');
+      tc.translate(cx + cr.ox * SZ / 2, cy + cr.oy * SZ / 2); tc.rotate(cr.rot * Math.PI / 180);
+      var k = (SZ - 2 * PAD - 2 * BORDER) / Math.max(iw, ih) * cr.zoom;
+      tc.scale(k, k); tc.drawImage(img, -iw / 2, -ih / 2);
+      var s = document.createElement('canvas'); s.width = s.height = SZ;
+      var sc = s.getContext('2d');
+      sc.drawImage(t, 0, 0); sc.globalCompositeOperation = 'source-in'; sc.fillStyle = '#fff'; sc.fillRect(0, 0, SZ, SZ);
+      for (var a = 0; a < 36; a++) { var ang = a / 36 * Math.PI * 2; ctx.drawImage(s, Math.cos(ang) * BORDER, Math.sin(ang) * BORDER); }
+      ctx.drawImage(t, 0, 0);
+      return c;
+    }
+    shapePath(ctx, cx, cy, R, cr.shape); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.save();
+    shapePath(ctx, cx, cy, R - BORDER, cr.shape); ctx.clip();
+    ctx.translate(cx, cy); ctx.rotate(cr.rot * Math.PI / 180);
+    var side = Math.min(iw, ih) / cr.zoom;
+    var sx = iw / 2 - cr.ox * iw / 2 - side / 2, sy = ih / 2 - cr.oy * ih / 2 - side / 2;
+    ctx.drawImage(img, sx, sy, side, side, -R, -R, 2 * R, 2 * R);
+    ctx.restore();
+    return c;
+  }
+  function stickerAt(ctx, cv, cx, cy, size, rot) {
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot || 0);
+    ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3;
+    ctx.drawImage(cv, -size / 2, -size / 2, size, size);
+    ctx.restore();
+  }
+
+  /* ---------- Lớp của em (dùng chung khóa với web các bài khác) ---------- */
+  var KEY = 'labcoten.lop.v1';
+  var R = [];
+  function demoSticker(name, hue) { return placeholder((name[0] || '?').toUpperCase(), 'hsl(' + hue + ',80%,70%)'); }
+  [['An', 335], ['Bình', 290], ['Chi', 20], ['Dũng', 200], ['Em', 160]].forEach(function (d, i) { R.push({ id: 'demo' + i, name: d[0], demo: true, cv: null, hue: d[1] }); });
+  function rosterGet(id) { for (var i = 0; i < R.length; i++) if (R[i].id === id) return R[i]; return null; }
+  function faceOf(r) { if (!r) return null; if (r.demo) return demoSticker(r.name, r.hue); return r.cv; }
+  function saveRoster() {
+    try { localStorage.setItem(KEY, JSON.stringify(R.filter(function (r) { return !r.demo; }).map(function (r) { return { id: r.id, name: r.name, png: r.png }; }))); return true; }
+    catch (e) { return false; }
+  }
+  function loadRoster() {
+    try {
+      var j = JSON.parse(localStorage.getItem(KEY) || '[]');
+      if (!Array.isArray(j) || !j.length) return;
+      R = R.filter(function (r) { return !r.demo; });
+      j.forEach(function (e) {
+        if (!e || !e.png || !e.name) return;
+        var r = { id: String(e.id), name: String(e.name), png: e.png, demo: false, cv: null };
+        var im = new Image(); im.onload = function () { r.cv = im; drawAvatars(); draw(); }; im.src = e.png;
+        R.push(r);
+      });
+    } catch (e) { /* bộ nhớ không dùng được */ }
+  }
+  function renderRoster() {
+    var ul = $('roster'); ul.innerHTML = '';
+    R.forEach(function (r) {
+      var li = document.createElement('li');
+      var im = document.createElement('img'); im.alt = '';
+      im.src = r.demo ? demoSticker(r.name, r.hue).toDataURL() : r.png;
+      var nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = r.name + (r.demo ? ' (mẫu)' : '');
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'ghost'; del.textContent = 'Xóa'; del.setAttribute('aria-label', 'Xóa ' + r.name);
+      del.addEventListener('click', function () { R = R.filter(function (x) { return x !== r; }); saveRoster(); afterRoster(); });
+      li.appendChild(im); li.appendChild(nm); li.appendChild(del); ul.appendChild(li);
+    });
+  }
+
+  /* ================= Lõi mô phỏng dùng chung ================= */
+  var DT = 0.02, TAU = Math.PI * 2;
+  function pack(T, fn) {
+    var n = Math.round(T / DT), a = [];
+    for (var i = 0; i <= n; i++) { var s = fn(i * DT, i); s.t = i * DT; a.push(s); }
+    return { T: T, n: n, a: a };
+  }
+  function at(res, t) {
+    var f = clamp(t / DT, 0, res.n), i = Math.floor(f), k = f - i, a = res.a[i], b = res.a[Math.min(i + 1, res.n)], o = {};
+    for (var key in a) o[key] = (typeof a[key] === 'number' && typeof b[key] === 'number') ? lerp(a[key], b[key], k) : a[key];
+    return o;
+  }
+  function series(res, key, color, name, step, dash) {
+    var pts = [], st = step || 2;
+    for (var i = 0; i <= res.n; i += st) pts.push([res.a[i].t, res.a[i][key]]);
+    var last = res.a[res.n]; if (pts[pts.length - 1][0] < last.t) pts.push([last.t, last[key]]);
+    return { color: color, pts: pts, name: name, dash: dash };
+  }
+  function hline(x0, x1, y, color, name) { return { color: color, pts: [[x0, y], [x1, y]], dash: [8, 6], w: 2.5, name: name, nodot: true }; }
+  function curve(x0, x1, n, fn, color, name, o) {
+    var pts = []; for (var i = 0; i <= n; i++) { var x = x0 + (x1 - x0) * i / n; pts.push([x, fn(x)]); }
+    var s = { color: color, pts: pts, name: name, nodot: true }; if (o) for (var k in o) s[k] = o[k]; return s;
+  }
+  var SCENES = [];
+  function addScene(o) { SCENES.push(o); }
+  function smooth01(x) { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); }
+  function hexRgb(h) { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
+  function mixC(a, b, k) { var A = hexRgb(a), B = hexRgb(b); return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(A[i] + (B[i] - A[i]) * k); }).join(',') + ')'; }
+  /* sticker nhanh, không đổ bóng (dùng khi vẽ nhiều mặt cùng lúc) */
+  function face2(ctx, cv, x, y, size) { ctx.drawImage(cv, x - size / 2, y - size / 2, size, size); }
+  function bg(ctx, W, H, a, b) { var g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, a || '#17121b'); g.addColorStop(1, b || '#0f0d11'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+  function dashV(ctx, x, y0, y1, color) { ctx.save(); ctx.setLineDash([5, 5]); ctx.strokeStyle = color || MUTE; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke(); ctx.restore(); }
+  function dashH(ctx, x0, x1, y, color) { ctx.save(); ctx.setLineDash([6, 6]); ctx.strokeStyle = color || LINE; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.restore(); }
+  /* mũi tên hai đầu (↕ hoặc ↔) cho biên độ dao động */
+  function dbl(ctx, x0, y0, x1, y1, color) {
+    var a = Math.atan2(y1 - y0, x1 - x0), h = 9;
+    ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    [[x1, y1, a], [x0, y0, a + Math.PI]].forEach(function (e) {
+      ctx.beginPath(); ctx.moveTo(e[0], e[1]); ctx.lineTo(e[0] - h * Math.cos(e[2] - 0.45), e[1] - h * Math.sin(e[2] - 0.45)); ctx.lineTo(e[0] - h * Math.cos(e[2] + 0.45), e[1] - h * Math.sin(e[2] + 0.45)); ctx.closePath(); ctx.fill();
+    });
+    ctx.restore();
+  }
+  function chipTxt(ctx, text, x, y, color, align) {
+    ctx.font = '700 15px ' + FONT; var w = ctx.measureText(text).width + 16;
+    var x0 = align === 'right' ? x - w : align === 'center' ? x - w / 2 : x;
+    ctx.fillStyle = 'rgba(12,10,14,.82)'; rr(ctx, x0, y - 14, w, 28, 8); ctx.fill();
+    ctx.strokeStyle = color || LINE; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = color || FG; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(text, x0 + 8, y + 1);
+  }
+  function arrowR(ctx, x0, x1, y, color, text) { force(ctx, x0, y, 1, 0, x1 - x0, color, null, { w: 5 }); if (text) label(ctx, text, x0, y - 18, color, 15, 'left'); }
+  function pi2(x) { return fmt(x, 2).replace(/,00$/, '').replace(/(,\d)0$/, '$1') + 'π'; }
+  function fmtSci(x, d) {
+    if (!isFinite(x) || x === 0) return fmt(x, d);
+    var e = Math.floor(Math.log10(Math.abs(x))), m = x / Math.pow(10, e), sup = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+    return fmt(m, d === undefined ? 2 : d) + '·10' + String(e).split('').map(function (c) { return sup[c]; }).join('');
+  }
+
+
+  /* ================= Khí lí tưởng (Vật lí 12, KNTT: Bài 8 – 12) — mô hình hạt 2D thu nhỏ để minh họa ================= */
+  var PAGE_TITLE = 'Khí lí tưởng';
+  var GROUPS = [{ id: 'phantu', box: 'gA' }, { id: 'dinhluat', box: 'gB' }];
+  var RGAS = 8.31, KB = 1.38e-23, NA = 6.02e23;
+  var BW = 1.4, RAD = 0.045, VS = 0.8, SUB = 4, VMAX = 64; /* VMAX mL ứng với chiều cao 1 đơn vị */
+  var GASES = [[4, 'Heli'], [28, 'Nitơ'], [32, 'Oxi'], [44, 'CO₂']];
+  var C_HOT = '#ff7a45', C_COLD = '#4cc9ff';
+  var CROWD = 'Mỗi phân tử khí mang khuôn mặt lần lượt từ danh sách “Lớp của em”. Thêm ảnh lớp em ở cuối cột này.';
+  function K(tc) { return tc + 273; }
+  function vrms(T, mol) { return Math.sqrt(3 * RGAS * T / (mol / 1000)); }
+  function vsim(T, mol) { return VS * Math.sqrt((T / 300) * (28 / mol)); }
+  function hOf(V) { return V / VMAX; }
+  function gasName(mol) { for (var i = 0; i < GASES.length; i++) if (GASES[i][0] === mol) return GASES[i][1]; return 'khí'; }
+
+  /* ---------- Mô hình hạt: va chạm đàn hồi với nhau và với thành bình; giữ nhiệt độ theo T(t) ---------- */
+  function rng(seed) { var s = (seed >>> 0) || 1; return function () { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+  function gauss(rd) { var u = Math.max(1e-9, rd()), v = rd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v); }
+  function particles(o) {
+    var n = Math.round(o.dur / DT), N = o.N, nb = N + (o.brown ? 1 : 0), rd = rng(o.seed || 20261205);
+    var x = new Float64Array(nb), y = new Float64Array(nb), vx = new Float64Array(nb), vy = new Float64Array(nb), m = new Float64Array(nb), rad = new Float64Array(nb), i, j;
+    var h0 = o.h(0);
+    for (i = 0; i < nb; i++) { m[i] = 1; rad[i] = RAD; }
+    if (o.brown) { m[N] = 30; rad[N] = 0.1; x[N] = BW / 2; y[N] = h0 / 2; }
+    var sg = vsim(o.Tk(0), o.mol) / Math.SQRT2;
+    for (i = 0; i < N; i++) {
+      for (var tr = 0; tr < 500; tr++) {
+        x[i] = RAD + rd() * (BW - 2 * RAD); y[i] = RAD + rd() * (h0 - 2 * RAD);
+        var ok = true;
+        for (j = 0; j < i; j++) if (Math.hypot(x[i] - x[j], y[i] - y[j]) < 2.05 * RAD) { ok = false; break; }
+        if (ok && o.brown && Math.hypot(x[i] - x[N], y[i] - y[N]) < RAD + rad[N] + 0.01) ok = false;
+        if (ok) break;
+      }
+      vx[i] = gauss(rd) * sg; vy[i] = gauss(rd) * sg;
+    }
+    var fr = new Float32Array((n + 1) * nb * 2), sp = new Float32Array((n + 1) * nb), hh = new Float32Array(n + 1), imp = new Float32Array(n + 1), cnt = new Uint16Array(n + 1), fl = [];
+    for (var f = 0; f <= n; f++) {
+      var t = f * DT, base = f * nb * 2, hits = [];
+      hh[f] = o.h(t);
+      for (i = 0; i < nb; i++) { fr[base + 2 * i] = x[i]; fr[base + 2 * i + 1] = y[i]; sp[f * nb + i] = Math.hypot(vx[i], vy[i]); }
+      if (f === n) { fl.push(hits); break; }
+      var dt = DT / SUB;
+      for (var sb = 0; sb < SUB; sb++) {
+        var t1 = t + (sb + 1) * dt, H = o.h(t1), u = (H - o.h(t1 - dt)) / dt;
+        for (i = 0; i < nb; i++) {
+          x[i] += vx[i] * dt; y[i] += vy[i] * dt;
+          var r = rad[i], gas = i < N;
+          if (x[i] < r) { x[i] = r; if (vx[i] < 0) { if (gas) { imp[f] += -2 * vx[i]; cnt[f]++; hits.push(0, y[i]); } vx[i] = -vx[i]; } }
+          if (x[i] > BW - r) { x[i] = BW - r; if (vx[i] > 0) { if (gas) { imp[f] += 2 * vx[i]; cnt[f]++; hits.push(BW, y[i]); } vx[i] = -vx[i]; } }
+          if (y[i] < r) { y[i] = r; if (vy[i] < 0) { if (gas) { imp[f] += -2 * vy[i]; cnt[f]++; hits.push(x[i], 0); } vy[i] = -vy[i]; } }
+          if (y[i] > H - r) { y[i] = H - r; if (vy[i] > u) { if (gas) { imp[f] += 2 * (vy[i] - u); cnt[f]++; hits.push(x[i], H); } vy[i] = 2 * u - vy[i]; } }
+        }
+        for (i = 0; i < nb; i++) for (j = i + 1; j < nb; j++) {
+          var dx = x[j] - x[i], dy = y[j] - y[i], rs = rad[i] + rad[j], d2 = dx * dx + dy * dy;
+          if (d2 >= rs * rs || d2 === 0) continue;
+          var d = Math.sqrt(d2), nx = dx / d, ny = dy / d, rv = (vx[i] - vx[j]) * nx + (vy[i] - vy[j]) * ny, mi = m[i], mj = m[j], ov = rs - d, ms = mi + mj;
+          x[i] -= nx * ov * mj / ms; y[i] -= ny * ov * mj / ms; x[j] += nx * ov * mi / ms; y[j] += ny * ov * mi / ms;
+          if (rv > 0) { var J = 2 * rv / ms; vx[i] -= J * mj * nx; vy[i] -= J * mj * ny; vx[j] += J * mi * nx; vy[j] += J * mi * ny; }
+        }
+      }
+      /* giữ đúng nhiệt độ: trung bình bình phương tốc độ ứng với T(t) */
+      var target = Math.pow(vsim(o.Tk(t + DT), o.mol), 2), s2 = 0;
+      for (i = 0; i < N; i++) s2 += vx[i] * vx[i] + vy[i] * vy[i];
+      var kf = s2 > 0 ? Math.sqrt(target * N / s2) : 1;
+      for (i = 0; i < N; i++) { vx[i] *= kf; vy[i] *= kf; }
+      fl.push(hits);
+    }
+    return { n: n, nb: nb, N: N, fr: fr, sp: sp, hh: hh, imp: imp, cnt: cnt, fl: fl, mol: o.mol, Tk: o.Tk };
+  }
+  /* áp suất "đo" từ va chạm (trung bình trượt 1,5 s), quy về kPa của khí thật */
+  function measured(g, f, pReal, T) {
+    var w = Math.min(f, 75); if (w < 5) return { p: pReal, hit: NaN };
+    var I = 0, c = 0; for (var q = f - w + 1; q <= f; q++) { I += g.imp[q]; c += g.cnt[q]; }
+    var H = g.hh[f], per = 2 * (BW - 2 * RAD) + 2 * (H - 2 * RAD), Aeff = (BW - 2 * RAD) * (H - 2 * RAD);
+    var pm = I / (w * DT * per), pth = g.N * Math.pow(vsim(T, g.mol), 2) / (2 * Aeff);
+    var eta = g.N * Math.PI * RAD * RAD / (BW * H), Z = (1 + eta * eta / 8) / Math.pow(1 - eta, 2);
+    return { p: pReal * pm / (pth * Z), hit: c / (w * DT) };
+  }
+  /* ---------- vẽ ---------- */
+  function narrow(W) { return W < 560; }
+  function boxGeo(W, H, frac, hmax) { if (narrow(W)) frac = Math.max(frac || 0.46, 0.6); var bw = Math.min(W * (frac || 0.46), (H - 150) * BW / (hmax || 0.98)), s = bw / BW; return { x: Math.max(16, W * 0.06), yb: H - 44, s: s, w: bw }; }
+  function drawMolecules(ctx, G, res, t, cr, o) {
+    var g = res.g, fi = clamp(Math.round(t / DT), 0, g.n), nb = g.nb, base = fi * nb * 2, fr = g.fr, rp = RAD * G.s;
+    for (var b = 0; b < 4; b++) { var fj = fi - b; if (fj < 0) break; var hs = g.fl[fj]; ctx.fillStyle = 'rgba(255,79,163,' + (0.6 - b * 0.14) + ')'; for (var q = 0; q < hs.length; q += 2) { ctx.beginPath(); ctx.arc(G.x + hs[q] * G.s, G.yb - hs[q + 1] * G.s, Math.max(3, rp * 0.55) - b, 0, TAU); ctx.fill(); } }
+    if (o && o.brown && nb > g.N) {
+      ctx.strokeStyle = 'rgba(255,210,63,.7)'; ctx.lineWidth = 2; ctx.beginPath();
+      for (var k = 0; k <= fi; k += 2) { var bx = G.x + fr[k * nb * 2 + 2 * g.N] * G.s, by = G.yb - fr[k * nb * 2 + 2 * g.N + 1] * G.s; if (k === 0) ctx.moveTo(bx, by); else ctx.lineTo(bx, by); } ctx.stroke();
+    }
+    for (var i = 0; i < g.N; i++) {
+      var px = G.x + fr[base + 2 * i] * G.s, py = G.yb - fr[base + 2 * i + 1] * G.s;
+      if (rp >= 7) face2(ctx, cr[i % cr.length], px, py, rp * 2.25);
+      else { ctx.fillStyle = PINK; ctx.beginPath(); ctx.arc(px, py, Math.max(2.5, rp), 0, TAU); ctx.fill(); }
+    }
+    if (o && o.brown && nb > g.N) { var qx = G.x + fr[base + 2 * g.N] * G.s, qy = G.yb - fr[base + 2 * g.N + 1] * G.s; stickerAt(ctx, o.brownFace, qx, qy, 0.1 * G.s * 2.3); }
+  }
+  function cylinder(ctx, G, hcur, o) {
+    var top = G.yb - (o.hmax || 1) * G.s - 10;
+    ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fillRect(G.x, G.yb - hcur * G.s, G.w, hcur * G.s);
+    ctx.strokeStyle = '#d9c9d3'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(G.x - 2, top); ctx.lineTo(G.x - 2, G.yb + 2); ctx.lineTo(G.x + G.w + 2, G.yb + 2); ctx.lineTo(G.x + G.w + 2, top); ctx.stroke();
+    if (o.scale) {
+      ctx.font = '12px ' + FONT; ctx.fillStyle = MUTE; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      for (var v = 10; v <= VMAX - 1; v += 10) { var yy = G.yb - hOf(v) * G.s; ctx.strokeStyle = MUTE; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(G.x + G.w + 2, yy); ctx.lineTo(G.x + G.w + 12, yy); ctx.stroke(); ctx.fillText(v + ' mL', G.x + G.w + 15, yy); }
+    }
+    if (o.piston) {
+      var py = G.yb - hcur * G.s;
+      ctx.fillStyle = '#9b8c97'; ctx.fillRect(G.x, py - 12, G.w, 12); ctx.fillStyle = '#c7b8c2'; ctx.fillRect(G.x, py - 12, G.w, 4);
+      if (o.rod) { var rl = o.rodLen || 40; ctx.fillStyle = '#9b8c97'; ctx.fillRect(G.x + G.w / 2 - 5, py - 12 - rl, 10, rl); }
+      if (o.lock) { label(ctx, '🔒 chốt giữ pít-tông', G.x + G.w / 2, py - 26, C_LIFT, 14, 'center'); }
+      return py - 12;
+    }
+    return G.yb - hcur * G.s;
+  }
+  function gauge(ctx, cx, cy, r, val, vmax, txt) {
+    ctx.fillStyle = '#efe6ec'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.fill(); ctx.strokeStyle = PINK; ctx.lineWidth = 4; ctx.stroke();
+    var a0 = Math.PI * 0.75, a1 = Math.PI * 2.25;
+    ctx.strokeStyle = '#1d1319'; ctx.lineWidth = 1.5; ctx.font = '700 ' + Math.max(9, Math.round(r * 0.2)) + 'px ' + FONT; ctx.fillStyle = '#1d1319'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (var k = 0; k <= 5; k++) { var a = a0 + (a1 - a0) * k / 5; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r * 0.78, cy + Math.sin(a) * r * 0.78); ctx.lineTo(cx + Math.cos(a) * r * 0.92, cy + Math.sin(a) * r * 0.92); ctx.stroke(); if (r > 40) ctx.fillText(fmt(vmax * k / 5, 0), cx + Math.cos(a) * r * 0.6, cy + Math.sin(a) * r * 0.6); }
+    var an = a0 + (a1 - a0) * clamp(val / vmax, 0, 1.02);
+    ctx.strokeStyle = '#d4206c'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(an) * r * 0.82, cy + Math.sin(an) * r * 0.82); ctx.stroke();
+    ctx.fillStyle = '#1d1319'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, TAU); ctx.fill();
+    label(ctx, txt, cx, cy + r + 16, FG, 15, 'center');
+  }
+  function thermo(ctx, x, yTop, h, tc, t0, t1) {
+    ctx.fillStyle = '#efe6ec'; rr(ctx, x - 7, yTop, 14, h, 7); ctx.fill(); ctx.beginPath(); ctx.arc(x, yTop + h + 6, 12, 0, TAU); ctx.fill();
+    var k = clamp((tc - t0) / (t1 - t0), 0, 1), col = mixC(C_COLD, C_HOT, k);
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, yTop + h + 6, 8, 0, TAU); ctx.fill(); ctx.fillRect(x - 3.5, yTop + 6 + (h - 6) * (1 - k), 7, (h - 6) * k + 8);
+    label(ctx, fmt(tc, 0) + ' °C', x, yTop - 14, col, 15, 'center');
+  }
+  function flame(ctx, x, y, s, t) {
+    if (s < 0.05) return;
+    for (var i = 0; i < 3; i++) { var w = (14 + i * 6) * s, h = (40 + 8 * Math.sin(t * 9 + i)) * s * (1 - i * 0.18); ctx.fillStyle = ['rgba(255,122,69,.85)', 'rgba(255,210,63,.75)', 'rgba(255,255,255,.7)'][i]; ctx.beginPath(); ctx.moveTo(x - w / (i + 1), y); ctx.quadraticCurveTo(x, y - h * 1.4, x + w / (i + 1), y); ctx.closePath(); ctx.fill(); }
+  }
+  function sideX(W, G) { return G.x + G.w + Math.max(70, W * 0.08); }
+  /* vị trí áp kế và nhiệt kế: bên phải hộp (máy tính) hoặc phía trên (điện thoại) */
+  function sidePos(W, H, G, dx) { if (!narrow(W)) { var sx = sideX(W, G) + (dx || 0), gr = clamp(W * 0.08, 34, 70); return { gx: sx + gr, gy: 30 + gr, gr: gr, tx: sx + gr, ty: 30 + 2 * gr + 70, th: H * 0.22 }; } return { gx: W * 0.3, gy: 64, gr: 42, tx: W * 0.8, ty: 36, th: 90 }; }
+
+  /* ---------- 1. Phân tử khí chuyển động (Bài 8, chuyển động Brown) ---------- */
+  var PT_H = 0.72;
+  function simPT(p) {
+    var T = K(p.tC), g = particles({ N: p.N, dur: 16, Tk: function () { return T; }, h: function () { return PT_H; }, mol: p.mol, brown: !!p.brown });
+    var r = pack(16, function (t, i) { var m = measured(g, i, 100, T); return { hit: m.hit }; });
+    for (var i = 0; i < 5 && i <= r.n; i++) r.a[i].hit = r.a[Math.min(5, r.n)].hit;
+    r.g = g; r.T = T; r.vr = vrms(T, p.mol); return r;
+  }
+  function drawPT(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H);
+    var G = boxGeo(W, H, 0.5, PT_H + 0.1), T = st.res.T; G.yb = (H + PT_H * G.s) / 2 + 6;
+    cylinder(ctx, G, PT_H, { hmax: PT_H, piston: false });
+    ctx.strokeStyle = '#d9c9d3'; ctx.lineWidth = 4; ctx.strokeRect(G.x - 2, G.yb - PT_H * G.s - 2, G.w + 4, PT_H * G.s + 4);
+    drawMolecules(ctx, G, st.res, st.t, st.crowd, { brown: !!p.brown, brownFace: f[0].cv });
+    var sx = sideX(W, G);
+    if (narrow(W)) { var sp = sidePos(W, H, G); thermo(ctx, sp.tx, sp.ty, sp.th, p.tC, -100, 300); } else thermo(ctx, sx, 60, H * 0.45, p.tC, -100, 300);
+    label(ctx, gasName(p.mol) + ' · ' + fmt(T, 0) + ' K', G.x, 24, FG, 16, 'left');
+    if (W > 640) { chipTxt(ctx, '√(v̄²) ≈ ' + fmt(st.res.vr, 0) + ' m/s', sx + 30, 70, C_V, 'left'); chipTxt(ctx, 'W̄đ = ' + fmtSci(1.5 * KB * T) + ' J', sx + 30, 110, C_W, 'left'); }
+    label(ctx, 'Chấm hồng: phân tử va vào thành bình', G.x, H - 18, MUTE, 13, 'left');
+  }
+  addScene({
+    id: 'phan-tu', group: 'phantu', chip: 'Phân tử khí', title: ['Phân tử khí ', 'chuyển động hỗn loạn'], chars: ['Hạt phấn hoa (khi bật)'], crowd: CROWD, speed: 1, loop: true,
+    hint: 'Tăng nhiệt độ hoặc đổi loại khí và xem các bạn “chạy” nhanh hay chậm',
+    blurb: 'Cả lớp là các phân tử khí trong một hộp kín. Các bạn chạy hỗn loạn không ngừng, va vào nhau và va vào thành bình. Nhiệt độ càng cao, các bạn chạy càng nhanh. Bật hạt phấn hoa để thấy chuyển động Brown.',
+    params: [
+      { k: 'tC', label: 'Nhiệt độ', type: 'range', min: -100, max: 300, step: 10, def: 27, unit: ' °C' },
+      { k: 'mol', label: 'Loại khí', type: 'seg', opts: GASES, def: 28 },
+      { k: 'N', label: 'Số phân tử trong mô hình', type: 'range', min: 10, max: 36, step: 2, def: 20, unit: '' },
+      { k: 'brown', label: 'Hạt phấn hoa', type: 'seg', opts: [[0, 'Không'], [1, 'Có (chuyển động Brown)']], def: 0 }],
+    sim: simPT, draw: drawPT,
+    modes: [['hist', 'Có bao nhiêu phân tử ở mỗi tốc độ (lúc này)'], ['hit', 'Số va chạm lên thành bình mỗi giây'], ['brown', 'Đường đi của hạt phấn hoa']],
+    graph: function (r, p, m, s, t) {
+      var g = r.g, fi = clamp(Math.round(t / DT), 0, g.n);
+      if (m === 'hist') {
+        var sc = r.vr / vsim(r.T, p.mol), top = 2.6 * r.vr, nbin = 13, bins = []; for (var b = 0; b < nbin; b++) bins.push(0);
+        for (var i = 0; i < g.N; i++) { var v = g.sp[fi * g.nb + i] * sc; bins[Math.min(nbin - 1, Math.floor(v / top * nbin))]++; }
+        var pts = []; bins.forEach(function (c, b) { pts.push([b * top / nbin, c]); pts.push([(b + 1) * top / nbin, c]); });
+        return { s: [{ color: PINK, pts: pts, name: 'Số phân tử (mô hình ' + g.N + ' hạt)', nodot: true }], xr: [0, top], xl: 'tốc độ (m/s)', yl: 'số phân tử', dots: [], vx: r.vr, note: 'Nét đứt dọc: √(v̄²) = ' + fmt(r.vr, 0) + ' m/s' };
+      }
+      if (m === 'hit') return { s: [series(r, 'hit', C_V, 'Số va chạm mỗi giây (mô hình)')], yl: 'lần/giây' };
+      if (!p.brown) return { s: [], xr: [0, BW], yr: [0, PT_H], xl: 'x', yl: 'y', dots: [], note: 'Bật “Hạt phấn hoa” để xem đường đi.' };
+      var pp = []; for (var k = 0; k <= fi; k += 2) pp.push([g.fr[k * g.nb * 2 + 2 * g.N], g.fr[k * g.nb * 2 + 2 * g.N + 1]]);
+      return { s: [{ color: C_W, pts: pp, name: 'Đường đi của hạt phấn hoa', nodot: true }], xr: [0, BW], yr: [0, PT_H], xl: 'x (mô hình)', yl: 'y', dots: pp.length ? [{ x: pp[pp.length - 1][0], y: pp[pp.length - 1][1], color: C_W }] : [] };
+    },
+    reads: function (p, s, r) { return [['Nhiệt độ T', fmt(r.T, 0) + ' K', 'weight'], ['Tốc độ √(v̄²)', fmt(r.vr, 0) + ' m/s', 'vel'], ['Động năng TB', fmtSci(1.5 * KB * r.T) + ' J', 'drag'], ['Va chạm/giây', isFinite(s.hit) ? fmt(s.hit, 0) : '…', 'push']]; },
+    meet: function (p, s, r) {
+      var k = Math.sqrt(r.T / 300), b = p.brown ? ' <strong>Hạt phấn hoa</strong> to và nặng, bị các phân tử va đập không đều từ mọi phía nên lắc lư hỗn loạn: đó là chuyển động Brown.' : '';
+      return '<strong>Nhiệt độ ' + fmt(r.T, 0) + ' K:</strong> phân tử chạy nhanh gấp ' + fmt(k, 2) + ' lần so với ở 300 K (27 °C). Phân tử ' + gasName(p.mol) + ' càng nhẹ thì chạy càng nhanh.' + b;
+    },
+    formula: '<code>W̄đ = ³⁄₂ · k · T</code><code>√(v̄²) = √(3RT / M)</code><small>k = 1,38·10⁻²³ J/K, R = 8,31 J/(mol·K), M: khối lượng mol (kg/mol), T = t + 273 (K). Mô hình trên màn hình là 2D và thu nhỏ để quan sát.</small>',
+    ratios: function (p, r) {
+      return [
+        { t: 'Tốc độ phân tử ở ' + p.tC + ' °C', rows: GASES.map(function (g) { return { k: g[1] + ' (M = ' + g[0] + ' g/mol)', v: fmt(vrms(r.T, g[0]), 0) + ' m/s', r: fmt(vrms(r.T, g[0]) * 3.6, 0) + ' km/h', cur: g[0] === p.mol }; }) },
+        { t: 'Đổi nhiệt độ tuyệt đối (' + gasName(p.mol) + ')', rows: [150, 300, 600, 1200].map(function (T) { return { k: 'T = ' + T + ' K', v: fmt(vrms(T, p.mol), 0) + ' m/s', r: 'W̄đ ×' + fmt(T / 300, 1), cur: Math.abs(T - r.T) < 1 }; }) }];
+    },
+    tips: ['Tăng nhiệt độ từ 27 °C lên 327 °C (gấp đôi nhiệt độ tuyệt đối): các bạn chạy nhanh gấp mấy lần? Kiểm tra bằng bảng.', 'Đổi sang Heli rồi CO₂: phân tử nào chạy nhanh hơn ở cùng nhiệt độ?', 'Bật hạt phấn hoa: vì sao hạt to lại chuyển động lắc lư, không theo đường nào?', 'Xem đồ thị phân bố: mọi phân tử có cùng tốc độ không?']
+  });
+
+  /* ---------- 2. Áp suất do va chạm (Bài 12) ---------- */
+  function apReal(p) { var n = p.N * 0.005; return { n: n, p: n * RGAS * K(p.tC) / (p.V / 1000) / 1000 }; } /* kPa */
+  function simAP(p) {
+    var T = K(p.tC), h = p.V / 3 * 0.98, real = apReal(p);
+    var g = particles({ N: p.N, dur: 20, Tk: function () { return T; }, h: function () { return h; }, mol: 28 });
+    var r = pack(20, function (t, i) { var m = measured(g, i, real.p, T); return { pm: m.p, hit: m.hit }; });
+    for (var i = 0; i < 5 && i <= r.n; i++) { r.a[i].hit = r.a[5].hit; r.a[i].pm = r.a[5].pm; }
+    r.g = g; r.real = real; r.h = h; r.T = T; return r;
+  }
+  function drawAP(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H);
+    var G = boxGeo(W, H, 0.46, 1), r = st.res;
+    cylinder(ctx, G, r.h, { hmax: 1, piston: true, rod: true, rodLen: 60 });
+    drawMolecules(ctx, G, r, st.t, st.crowd, {});
+    var sp = sidePos(W, H, G, 0);
+    gauge(ctx, sp.gx, sp.gy, sp.gr, s.pm, Math.ceil(r.real.p * 1.6 / 50) * 50, 'p ≈ ' + fmt(s.pm, 0) + ' kPa');
+    thermo(ctx, sp.tx, sp.ty, narrow(W) ? sp.th : H * 0.28, p.tC, -50, 300);
+    label(ctx, 'Chấm hồng: một lần va chạm lên thành bình', G.x, H - 18, MUTE, 13, 'left');
+    label(ctx, 'V = ' + fmt(p.V, 1) + ' L', G.x, narrow(W) ? 160 : 24, FG, 16, 'left');
+  }
+  addScene({
+    id: 'ap-suat', group: 'phantu', chip: 'Áp suất từ va chạm', title: ['Áp suất ', 'do phân tử va chạm'], chars: [], crowd: CROWD, speed: 1, loop: false,
+    hint: 'Kim áp kế rung nhẹ vì mô hình chỉ có vài chục phân tử',
+    blurb: 'Mỗi lần một bạn va vào thành bình, thành bình bị đẩy nhẹ. Rất nhiều cú va chạm như vậy cộng lại tạo ra áp suất. Thêm phân tử, đun nóng hoặc thu nhỏ bình để thấy áp suất thay đổi thế nào.',
+    params: [
+      { k: 'N', label: 'Số phân tử trong mô hình', type: 'range', min: 10, max: 36, step: 2, def: 20, unit: '' },
+      { k: 'tC', label: 'Nhiệt độ', type: 'range', min: -50, max: 300, step: 10, def: 27, unit: ' °C' },
+      { k: 'V', label: 'Thể tích bình', type: 'range', min: 1, max: 3, step: 0.1, def: 2, unit: ' L' }],
+    sim: simAP, draw: drawAP,
+    modes: [['p', 'Áp suất đo từ va chạm – thời gian'], ['n', 'Số va chạm mỗi giây – thời gian']],
+    graph: function (r, p, m) {
+      if (m === 'p') return { s: [series(r, 'pm', PINK, 'Đo từ va chạm (trung bình 1,5 s)'), hline(0, r.T, r.real.p, C_W, 'p = nRT/V = ' + fmt(r.real.p, 1) + ' kPa')], yl: 'p (kPa)' };
+      return { s: [series(r, 'hit', C_V, 'Số va chạm mỗi giây (mô hình)')], yl: 'lần/giây' };
+    },
+    reads: function (p, s, r) { return [['p = nRT/V', fmt(r.real.p, 1) + ' kPa', 'weight'], ['Đo từ va chạm', fmt(s.pm, 1) + ' kPa', 'drag'], ['Va chạm/giây', isFinite(s.hit) ? fmt(s.hit, 0) : '…', 'vel'], ['Mật độ μ', fmtSci(r.real.n * NA / (p.V / 1000)) + ' /m³', 'push']]; },
+    meet: function () { return '<strong>Áp suất là kết quả của vô số va chạm</strong> của phân tử lên thành bình. Mô hình chỉ có vài chục hạt nên số đo dao động quanh giá trị lí thuyết; khí thật có khoảng 10²³ phân tử nên áp suất gần như không đổi.'; },
+    formula: '<code>p = ⅓ · μ · m · v̄²</code><code>p = μ · k · T</code><small>μ: số phân tử trong 1 m³, m: khối lượng một phân tử, v̄²: trung bình bình phương tốc độ. Mỗi hạt trong mô hình đại diện cho 0,005 mol khí.</small>',
+    ratios: function (p, r) {
+      return [
+        { t: 'Điều gì làm áp suất tăng? (va chạm tính trên mỗi cm² thành bình)', rows: [{ k: 'Gấp đôi số phân tử', v: 'p ×2', r: 'va chạm ×2', cur: false }, { k: 'Gấp đôi nhiệt độ T (K)', v: 'p ×2', r: 'va chạm ×1,41, mỗi cú mạnh ×1,41', cur: false }, { k: 'Gấp đôi thể tích', v: 'p ×½', r: 'va chạm ×½', cur: false }] },
+        { t: 'Khí thật trong bình đang chọn', rows: [{ k: 'Lượng khí', v: fmt(r.real.n, 2) + ' mol', r: '', cur: false }, { k: 'Số phân tử thật', v: fmtSci(r.real.n * NA), r: '', cur: false }, { k: 'Động năng TB một phân tử', v: fmtSci(1.5 * KB * r.T) + ' J', r: '', cur: false }] }];
+    },
+    tips: ['Gấp đôi số phân tử (10 → 20): số va chạm mỗi giây và áp suất thay đổi thế nào?', 'Giữ nguyên số phân tử, tăng nhiệt độ từ 27 °C lên 327 °C: vì sao áp suất tăng?', 'Thu nhỏ thể tích từ 2 L còn 1 L: các bạn va vào thành bình thường xuyên hơn hay ít hơn?', 'Vì sao kim áp kế trong mô hình rung, còn áp kế thật thì gần như đứng yên?']
+  });
+
+  /* ---------- 3. Nén đẳng nhiệt: định luật Boyle (Bài 9) ---------- */
+  function vBoyle(p, t) { return p.V1 + (p.V2 - p.V1) * smooth01((t - 1) / 8); }
+  function simBoyle(p) {
+    var T = K(p.tC), c = p.p1 * p.V1;
+    var g = particles({ N: 14, dur: 12, Tk: function () { return T; }, h: function (t) { return hOf(vBoyle(p, t)); }, mol: 28 });
+    var r = pack(12, function (t) { var V = vBoyle(p, t), pp = c / V; return { V: V, p: pp, pV: pp * V / 1000, iV: 1000 / V }; });
+    r.g = g; r.T = T; return r;
+  }
+  function drawBoyle(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H);
+    var G = boxGeo(W, H, 0.42, 1), h = hOf(s.V);
+    var py = cylinder(ctx, G, h, { hmax: 1, piston: true, rod: true, rodLen: 46, scale: true });
+    drawMolecules(ctx, G, st.res, st.t, st.crowd, {});
+    var topRod = py - 46, sz = clamp(W * 0.07, 46, 76);
+    ctx.fillStyle = '#c7b8c2'; rr(ctx, G.x + G.w / 2 - 40, topRod - 10, 80, 12, 5); ctx.fill();
+    stickerAt(ctx, f[0].cv, G.x + G.w / 2, topRod - 10 - sz * 0.48, sz);
+    if (st.t > 1 && st.t < 9) force(ctx, G.x + G.w / 2 + sz * 0.7, topRod - 30, 0, p.V2 < p.V1 ? 1 : -1, 44, C_PUSH, p.V2 < p.V1 ? 'nén' : 'kéo', { side: 'r' });
+    var sp = sidePos(W, H, G, 20);
+    gauge(ctx, sp.gx, sp.gy, sp.gr, s.p, Math.max(200, Math.ceil(p.p1 * p.V1 / Math.min(p.V1, p.V2) * 1.2 / 50) * 50), 'p = ' + fmt(s.p, 1) + ' kPa');
+    thermo(ctx, sp.tx, sp.ty, sp.th, p.tC, 0, 100);
+    if (W > 600) chipTxt(ctx, 'p·V = ' + fmt(s.pV, 2) + ' J (không đổi)', sp.gx - sp.gr, H - 70, C_W, 'left');
+  }
+  addScene({
+    id: 'boyle', group: 'dinhluat', chip: 'Nén đẳng nhiệt', title: ['Định luật Boyle: ', 'nén khí trong xi lanh'], chars: ['Bạn đẩy pít-tông'], crowd: CROWD, speed: 1, loop: false,
+    hint: 'Giống thí nghiệm xi lanh và áp kế trong SGK. Nén chậm để nhiệt độ không đổi',
+    blurb: 'Bạn đẩy pít-tông từ từ, nhiệt độ khí không đổi. Các phân tử bị dồn vào chỗ hẹp hơn nên va vào thành bình thường xuyên hơn. Thể tích giảm bao nhiêu lần thì áp suất tăng bấy nhiêu lần.',
+    params: [
+      { k: 'V1', label: 'Thể tích ban đầu V₁', type: 'range', min: 30, max: 60, step: 1, def: 50, unit: ' mL' },
+      { k: 'V2', label: 'Thể tích lúc sau V₂', type: 'range', min: 20, max: 60, step: 1, def: 25, unit: ' mL' },
+      { k: 'p1', label: 'Áp suất ban đầu p₁', type: 'range', min: 80, max: 150, step: 5, def: 100, unit: ' kPa' },
+      { k: 'tC', label: 'Nhiệt độ (không đổi)', type: 'range', min: 0, max: 100, step: 1, def: 27, unit: ' °C' }],
+    sim: simBoyle, draw: drawBoyle,
+    modes: [['pV', 'Đồ thị p – V (đường đẳng nhiệt)'], ['p1V', 'Đồ thị p – 1/V'], ['pt', 'Áp suất theo thời gian'], ['pVt', 'Tích p·V theo thời gian']],
+    graph: function (r, p, m, s, t) {
+      var c = p.p1 * p.V1, path = []; for (var i = 0; i <= Math.round(t / DT); i += 3) path.push([r.a[i].V, r.a[i].p]);
+      if (m === 'pV') return { s: [curve(15, 65, 200, function (V) { return c / V; }, 'rgba(255,210,63,.7)', 'Đường đẳng nhiệt ' + fmt(r.T, 0) + ' K', { dash: [7, 5] }), { color: PINK, pts: path.length > 1 ? path : [[s.V, s.p], [s.V, s.p]], name: 'Khí trong xi lanh', nodot: true }], xr: [15, 65], xl: 'V (mL)', yl: 'p (kPa)', dots: [{ x: s.V, y: s.p, color: PINK }] };
+      if (m === 'p1V') return { s: [curve(0, 70, 2, function (x) { return c / 1000 * x; }, 'rgba(255,210,63,.7)', 'p tỉ lệ với 1/V: đường thẳng qua gốc', { dash: [7, 5] })], xr: [0, 70], xl: '1/V (1/L)', yl: 'p (kPa)', dots: [{ x: s.iV, y: s.p, color: PINK }] };
+      if (m === 'pt') return { s: [series(r, 'p', PINK, 'Áp suất p')], yl: 'p (kPa)' };
+      return { s: [series(r, 'pV', C_W, 'Tích p·V')], yl: 'p·V (J)', yr: [0, c / 1000 * 1.4] };
+    },
+    reads: function (p, s, r) { return [['Thể tích V', fmt(s.V, 1) + ' mL', 'vel'], ['Áp suất p', fmt(s.p, 1) + ' kPa', 'weight'], ['Tích p·V', fmt(s.pV, 2) + ' J', 'drag'], ['Nhiệt độ T', fmt(r.T, 0) + ' K', 'push']]; },
+    meet: function (p, s, r, t) {
+      if (t < 1) return '<strong>Trạng thái 1:</strong> p₁ = ' + fmt(p.p1, 0) + ' kPa, V₁ = ' + p.V1 + ' mL.';
+      if (t < 9) return '<strong>Đang ' + (p.V2 < p.V1 ? 'nén' : 'giãn') + ' chậm:</strong> V còn ' + fmt(s.V / p.V1, 2) + ' lần V₁ thì p bằng ' + fmt(s.p / p.p1, 2) + ' lần p₁.';
+      return '<strong>p₁V₁ = p₂V₂:</strong> ' + fmt(p.p1, 0) + ' × ' + p.V1 + ' = ' + fmt(s.p, 1) + ' × ' + p.V2 + ' (kPa·mL). Thể tích giảm ' + fmt(p.V1 / p.V2, 2) + ' lần, áp suất tăng ' + fmt(p.V1 / p.V2, 2) + ' lần.';
+    },
+    formula: '<code>p · V = hằng số</code><code>p₁V₁ = p₂V₂</code><small>Định luật Boyle: với một lượng khí xác định ở nhiệt độ không đổi, áp suất tỉ lệ nghịch với thể tích. Đồ thị p – V là đường hypebol (đường đẳng nhiệt).</small>',
+    ratios: function (p) {
+      return [
+        { t: 'Từ V₁ = ' + p.V1 + ' mL, p₁ = ' + p.p1 + ' kPa (T không đổi)', rows: [1, 0.8, 0.5, 0.4].map(function (k) { var V = p.V1 * k; return { k: 'V = ' + fmt(V, 1) + ' mL', v: 'p = ' + fmt(p.p1 / k, 1) + ' kPa', r: '×' + fmt(1 / k, 2), cur: Math.abs(V - p.V2) < 0.5 }; }) },
+        { t: 'Bọt khí từ đáy hồ nổi lên (nước 1000 kg/m³)', rows: [5, 10, 20].map(function (h) { var pb = 101 + 9.8 * h; return { k: 'sâu ' + h + ' m', v: 'p = ' + fmt(pb, 0) + ' kPa', r: 'lên mặt nước to ra ×' + fmt(pb / 101, 2), cur: false }; }) }];
+    },
+    tips: ['Nén từ 50 mL xuống 25 mL: áp suất tăng gấp mấy lần? Tích p·V có đổi không?', 'Chọn đồ thị p – 1/V: đường biểu diễn có dạng gì?', 'Đổi nhiệt độ rồi nén lại: đường đẳng nhiệt mới nằm cao hơn hay thấp hơn?', 'Vì sao bọt khí ở đáy hồ to dần khi nổi lên mặt nước?']
+  });
+
+  /* ---------- 4. Đun nóng đẳng áp: định luật Charles (Bài 10) ---------- */
+  function tCharles(p, t) { return p.t1 + (p.t2 - p.t1) * smooth01((t - 1) / 10); }
+  function simCharles(p) {
+    var T1 = K(p.t1);
+    var g = particles({ N: 14, dur: 13, Tk: function (t) { return K(tCharles(p, t)); }, h: function (t) { return hOf(p.V1 * K(tCharles(p, t)) / T1); }, mol: 28 });
+    var r = pack(13, function (t) { var tc = tCharles(p, t), T = K(tc), V = p.V1 * T / T1; return { tc: tc, T: T, V: V, VT: V / T }; });
+    r.g = g; return r;
+  }
+  function drawCharles(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H);
+    var G = boxGeo(W, H, 0.38, 1.05); G.yb = H - 92;
+    var heat = (s.tc - p.t1) / Math.max(1, p.t2 - p.t1);
+    /* chậu nước */
+    var wx0 = G.x - 18, wx1 = G.x + G.w + 70, wy0 = G.yb - hOf(30) * G.s;
+    ctx.fillStyle = mixC('#1c4a6e', '#7a3a2a', clamp(heat, 0, 1)).replace('rgb', 'rgba').replace(')', ',.55)'); ctx.fillRect(wx0, wy0, wx1 - wx0, G.yb + 14 - wy0);
+    ctx.strokeStyle = '#d9c9d3'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(wx0, wy0 - 20); ctx.lineTo(wx0, G.yb + 14); ctx.lineTo(wx1, G.yb + 14); ctx.lineTo(wx1, wy0 - 20); ctx.stroke();
+    flame(ctx, (wx0 + wx1) / 2, G.yb + 46, 0.65 + 0.8 * clamp(heat, 0, 1) * (st.t < 11 ? 1 : 0.5), st.t);
+    ctx.fillStyle = '#6c5562'; ctx.fillRect((wx0 + wx1) / 2 - 22, G.yb + 46, 44, 14);
+    var py = cylinder(ctx, G, hOf(s.V), { hmax: 1, piston: true, scale: true });
+    drawMolecules(ctx, G, st.res, st.t, st.crowd, {});
+    var sz = clamp(W * 0.07, 46, 76);
+    stickerAt(ctx, f[0].cv, G.x + G.w / 2, py - sz * 0.48, sz);
+    var sx = sideX(W, G) + 10;
+    if (narrow(W)) { var sp = sidePos(W, H, G); thermo(ctx, sp.tx, sp.ty, sp.th, s.tc, 0, 150); label(ctx, fmt(s.T, 0) + ' K · ' + fmt(s.V, 1) + ' mL', 16, 40, FG, 15, 'left'); }
+    else thermo(ctx, sx, 50, H * 0.42, s.tc, 0, 150);
+    if (W > 600) { chipTxt(ctx, 'T = ' + fmt(s.T, 0) + ' K', sx + 34, 70, C_HOT, 'left'); chipTxt(ctx, 'V = ' + fmt(s.V, 1) + ' mL', sx + 34, 110, C_V, 'left'); chipTxt(ctx, 'p không đổi', sx + 34, 150, C_W, 'left'); }
+  }
+  addScene({
+    id: 'charles', group: 'dinhluat', chip: 'Đun nóng đẳng áp', title: ['Định luật Charles: ', 'khí nở ra khi nóng'], chars: ['Bạn ngồi trên pít-tông'], crowd: CROWD, speed: 1, loop: false,
+    hint: 'Bạn ngồi trên pít-tông giữ áp suất không đổi. Đun nóng và xem bạn ấy được nâng lên',
+    blurb: 'Xi lanh đặt trong chậu nước được đun nóng. Khí nóng lên, các phân tử chạy nhanh và va mạnh hơn nên đẩy pít-tông (và bạn ngồi trên đó) đi lên. Áp suất không đổi, thể tích tăng theo nhiệt độ tuyệt đối.',
+    params: [
+      { k: 'V1', label: 'Thể tích ban đầu V₁', type: 'range', min: 20, max: 40, step: 1, def: 30, unit: ' mL' },
+      { k: 't1', label: 'Nhiệt độ ban đầu t₁', type: 'range', min: 0, max: 40, step: 1, def: 20, unit: ' °C' },
+      { k: 't2', label: 'Nhiệt độ lúc sau t₂', type: 'range', min: 40, max: 150, step: 5, def: 100, unit: ' °C' }],
+    sim: simCharles, draw: drawCharles,
+    modes: [['VT', 'Đồ thị V – T (nhiệt độ tuyệt đối)'], ['Vt', 'Đồ thị V – t (°C), kéo dài về −273 °C'], ['tt', 'Tỉ số V/T theo thời gian']],
+    graph: function (r, p, m, s) {
+      var k = p.V1 / K(p.t1);
+      if (m === 'VT') return { s: [curve(0, 450, 2, function (T) { return k * T; }, 'rgba(255,210,63,.7)', 'V tỉ lệ thuận với T (kéo dài về 0 K)', { dash: [7, 5] }), curve(K(p.t1), K(p.t2), 2, function (T) { return k * T; }, PINK, 'Quá trình đun nóng')], xr: [0, 450], xl: 'T (K)', yl: 'V (mL)', dots: [{ x: s.T, y: s.V, color: PINK }] };
+      if (m === 'Vt') return { s: [curve(-273, 160, 2, function (tc) { return k * (tc + 273); }, 'rgba(255,210,63,.7)', 'Kéo dài cắt trục t tại −273 °C (0 K)', { dash: [7, 5] }), curve(p.t1, p.t2, 2, function (tc) { return k * (tc + 273); }, PINK, 'Quá trình đun nóng')], xr: [-300, 160], xl: 't (°C)', yl: 'V (mL)', dots: [{ x: s.tc, y: s.V, color: PINK }], vx: -273 };
+      return { s: [series(r, 'VT', C_W, 'V/T (mL/K)')], yl: 'V/T (mL/K)', yr: [0, k * 1.5] };
+    },
+    reads: function (p, s) { return [['Nhiệt độ', fmt(s.tc, 0) + ' °C = ' + fmt(s.T, 0) + ' K', 'drag'], ['Thể tích V', fmt(s.V, 1) + ' mL', 'vel'], ['V / T', fmt(s.VT, 4) + ' mL/K', 'weight'], ['Áp suất', 'không đổi', 'push']]; },
+    meet: function (p, s, r, t) {
+      if (t < 1) return '<strong>Trạng thái 1:</strong> V₁ = ' + p.V1 + ' mL, T₁ = ' + K(p.t1) + ' K.';
+      if (t < 11) return '<strong>Đang đun nóng:</strong> phân tử chạy nhanh hơn, va mạnh hơn, đẩy pít-tông lên. V/T vẫn giữ nguyên ' + fmt(s.VT, 4) + ' mL/K.';
+      return '<strong>V₁/T₁ = V₂/T₂:</strong> ' + p.V1 + '/' + K(p.t1) + ' = ' + fmt(s.V, 1) + '/' + K(p.t2) + '. Nhiệt độ °C tăng ' + fmt((p.t2 || 1) / (p.t1 || 1), 1) + ' lần nhưng thể tích chỉ tăng ' + fmt(s.V / p.V1, 2) + ' lần: phải dùng nhiệt độ tuyệt đối.';
+    },
+    formula: '<code>V / T = hằng số</code><code>V₁/T₁ = V₂/T₂</code><small>Định luật Charles: với một lượng khí xác định ở áp suất không đổi, thể tích tỉ lệ thuận với nhiệt độ tuyệt đối T = t + 273 (K).</small>',
+    ratios: function (p) {
+      var T1 = K(p.t1);
+      return [
+        { t: 'Vì sao phải dùng nhiệt độ tuyệt đối?', rows: [{ k: '20 °C → 40 °C (gấp đôi số °C)', v: 'V ×' + fmt(313 / 293, 2), r: 'không gấp đôi', cur: false }, { k: '293 K → 586 K (gấp đôi T)', v: 'V ×2', r: 'đúng gấp đôi', cur: false }] },
+        { t: 'Đun từ ' + p.t1 + ' °C, V₁ = ' + p.V1 + ' mL', rows: [40, 60, 100, 150].map(function (tc) { return { k: 't = ' + tc + ' °C', v: 'V = ' + fmt(p.V1 * K(tc) / T1, 1) + ' mL', r: '×' + fmt(K(tc) / T1, 2), cur: tc === p.t2 }; }) }];
+    },
+    tips: ['Đun từ 20 °C lên 100 °C: thể tích tăng gấp mấy lần? Có phải gấp 5 lần không?', 'Chọn đồ thị V – t (°C): đường kéo dài cắt trục nhiệt độ ở đâu? Điểm đó là gì?', 'Vì sao quả bóng bàn bị bẹp nhúng vào nước nóng lại phồng lên?', 'Trong suốt quá trình, vì sao áp suất khí không đổi?']
+  });
+
+  /* ---------- 5. Bình kín đun nóng: đẳng tích (Bài 11) ---------- */
+  var DT_H = 0.62;
+  function tDT(p, t) { return p.t1 + (p.t2 - p.t1) * smooth01((t - 1) / 10); }
+  function simDT(p) {
+    var T1 = K(p.t1);
+    var g = particles({ N: 16, dur: 13, Tk: function (t) { return K(tDT(p, t)); }, h: function () { return DT_H; }, mol: 28 });
+    var r = pack(13, function (t) { var tc = tDT(p, t), T = K(tc), pp = p.p1 * T / T1; return { tc: tc, T: T, p: pp, pT: pp / T }; });
+    r.g = g; return r;
+  }
+  function drawDT(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H);
+    var G = boxGeo(W, H, 0.42, DT_H + 0.25); G.yb = H - 96;
+    var heat = (s.tc - p.t1) / Math.max(1, p.t2 - p.t1);
+    ctx.strokeStyle = '#9aa4ad'; ctx.lineWidth = 9; rr(ctx, G.x - 6, G.yb - DT_H * G.s - 6, G.w + 12, DT_H * G.s + 12, 18); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fillRect(G.x, G.yb - DT_H * G.s, G.w, DT_H * G.s);
+    drawMolecules(ctx, G, st.res, st.t, st.crowd, {});
+    flame(ctx, G.x + G.w / 2, G.yb + 52, 0.65 + 0.8 * clamp(heat, 0, 1) * (st.t < 11 ? 1 : 0.5), st.t);
+    ctx.fillStyle = '#6c5562'; ctx.fillRect(G.x + G.w / 2 - 22, G.yb + 52, 44, 14);
+    var gr = clamp(W * 0.07, 32, 60), gx = G.x + G.w / 2, gy = G.yb - DT_H * G.s - 12 - gr - 18;
+    ctx.strokeStyle = '#9aa4ad'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(gx, G.yb - DT_H * G.s - 8); ctx.lineTo(gx, gy + gr); ctx.stroke();
+    gauge(ctx, gx, gy, gr, s.p, Math.ceil(p.p1 * K(p.t2) / K(p.t1) * 1.25 / 50) * 50, '');
+    var sz = clamp(W * 0.06, 42, 66);
+    stickerAt(ctx, f[0].cv, gx + gr + sz * 0.7, gy, sz);
+    var sx = sideX(W, G) + 30;
+    if (narrow(W)) { var sp = sidePos(W, H, G); thermo(ctx, sp.tx, sp.ty, sp.th, s.tc, 0, 200); }
+    else thermo(ctx, sx, 60, H * 0.4, s.tc, 0, 200);
+    if (W > 600) { chipTxt(ctx, 'p = ' + fmt(s.p, 1) + ' kPa', sx + 34, 80, C_W, 'left'); chipTxt(ctx, 'T = ' + fmt(s.T, 0) + ' K', sx + 34, 120, C_HOT, 'left'); chipTxt(ctx, 'V không đổi', sx + 34, 160, C_V, 'left'); }
+    if (s.p > 1.5 * p.p1) label(ctx, '⚠ Áp suất tăng cao: không để bình kín gần lửa', G.x, 22, C_HOT, 15, 'left');
+  }
+  addScene({
+    id: 'binh-kin', group: 'dinhluat', chip: 'Bình kín bị đun nóng', title: ['Bình kín ', 'bị đun nóng'], chars: ['Bạn đọc áp kế'], crowd: CROWD, speed: 1, loop: false,
+    hint: 'Thể tích bình không đổi. Xem áp suất tăng theo nhiệt độ tuyệt đối',
+    blurb: 'Khí trong bình thép kín (như bình xịt, lốp xe, nồi áp suất) được đun nóng. Bình không nở ra được, các phân tử chạy nhanh hơn và va mạnh hơn nên áp suất tăng. Vì vậy không được để bình kín gần lửa.',
+    params: [
+      { k: 'p1', label: 'Áp suất ban đầu p₁', type: 'range', min: 100, max: 250, step: 5, def: 200, unit: ' kPa' },
+      { k: 't1', label: 'Nhiệt độ ban đầu t₁', type: 'range', min: 0, max: 40, step: 1, def: 27, unit: ' °C' },
+      { k: 't2', label: 'Nhiệt độ lúc sau t₂', type: 'range', min: 40, max: 200, step: 5, def: 87, unit: ' °C' }],
+    sim: simDT, draw: drawDT,
+    modes: [['pT', 'Đồ thị p – T (nhiệt độ tuyệt đối)'], ['pt', 'Đồ thị p – t (°C), kéo dài về −273 °C'], ['tt', 'Tỉ số p/T theo thời gian']],
+    graph: function (r, p, m, s) {
+      var k = p.p1 / K(p.t1);
+      if (m === 'pT') return { s: [curve(0, 500, 2, function (T) { return k * T; }, 'rgba(255,210,63,.7)', 'p tỉ lệ thuận với T (kéo dài về 0 K)', { dash: [7, 5] }), curve(K(p.t1), K(p.t2), 2, function (T) { return k * T; }, PINK, 'Quá trình đun nóng')], xr: [0, 500], xl: 'T (K)', yl: 'p (kPa)', dots: [{ x: s.T, y: s.p, color: PINK }] };
+      if (m === 'pt') return { s: [curve(-273, 210, 2, function (tc) { return k * (tc + 273); }, 'rgba(255,210,63,.7)', 'Kéo dài cắt trục t tại −273 °C', { dash: [7, 5] }), curve(p.t1, p.t2, 2, function (tc) { return k * (tc + 273); }, PINK, 'Quá trình đun nóng')], xr: [-300, 210], xl: 't (°C)', yl: 'p (kPa)', dots: [{ x: s.tc, y: s.p, color: PINK }], vx: -273 };
+      return { s: [series(r, 'pT', C_W, 'p/T (kPa/K)')], yl: 'p/T (kPa/K)', yr: [0, k * 1.5] };
+    },
+    reads: function (p, s) { return [['Nhiệt độ', fmt(s.tc, 0) + ' °C = ' + fmt(s.T, 0) + ' K', 'drag'], ['Áp suất p', fmt(s.p, 1) + ' kPa', 'weight'], ['p / T', fmt(s.pT, 3) + ' kPa/K', 'vel'], ['Thể tích', 'không đổi', 'push']]; },
+    meet: function (p, s, r, t) {
+      if (t < 11) return '<strong>Đang đun nóng:</strong> T tăng thì p tăng theo cùng tỉ lệ. p/T giữ nguyên ' + fmt(s.pT, 3) + ' kPa/K.';
+      return '<strong>p₁/T₁ = p₂/T₂:</strong> áp suất tăng từ ' + fmt(p.p1, 0) + ' lên ' + fmt(s.p, 1) + ' kPa (×' + fmt(s.p / p.p1, 2) + ') khi T tăng từ ' + K(p.t1) + ' K lên ' + K(p.t2) + ' K.';
+    },
+    formula: '<code>p / T = hằng số</code><code>p₁/T₁ = p₂/T₂</code><small>Suy ra từ phương trình trạng thái khi thể tích không đổi (quá trình đẳng tích): áp suất tỉ lệ thuận với nhiệt độ tuyệt đối.</small>',
+    ratios: function (p) {
+      var T1 = K(p.t1);
+      return [
+        { t: 'Từ p₁ = ' + p.p1 + ' kPa ở ' + p.t1 + ' °C', rows: [40, 60, 87, 150, 200].map(function (tc) { return { k: 't = ' + tc + ' °C', v: 'p = ' + fmt(p.p1 * K(tc) / T1, 1) + ' kPa', r: '×' + fmt(K(tc) / T1, 2), cur: tc === p.t2 }; }) },
+        { t: 'Lốp xe 220 kPa lúc 27 °C để ngoài nắng', rows: [40, 50, 60].map(function (tc) { return { k: 'lốp nóng ' + tc + ' °C', v: 'p ≈ ' + fmt(220 * K(tc) / 300, 0) + ' kPa', r: '', cur: false }; }) }];
+    },
+    tips: ['Đun từ 27 °C lên 87 °C: áp suất tăng bao nhiêu lần? Vì sao không phải 87/27 lần?', 'Chọn đồ thị p – T: đường biểu diễn có đi qua gốc tọa độ không?', 'Vì sao người ta khuyên không bơm lốp xe quá căng vào buổi trưa nắng?', 'Vì sao trên bình xịt có ghi “không để gần lửa”?']
+  });
+
+  /* ---------- 6. Chu trình: phương trình trạng thái (Bài 11) ---------- */
+  var LEG = 6;
+  function cyc(p, t) {
+    var T1 = K(p.t1), p2 = p.p1 * p.V1 / p.V2, T3 = T1 * p.V1 / p.V2, tt = ((t % (3 * LEG)) + 3 * LEG) % (3 * LEG), leg = Math.min(2, Math.floor(tt / LEG)), k = smooth01((tt - leg * LEG) / LEG), V, T, pp;
+    if (leg === 0) { V = p.V1 + (p.V2 - p.V1) * k; T = T1; pp = p.p1 * p.V1 / V; }
+    else if (leg === 1) { V = p.V2 + (p.V1 - p.V2) * k; pp = p2; T = T1 * V / p.V2; }
+    else { V = p.V1; T = T3 + (T1 - T3) * k; pp = p2 * T / T3; }
+    return { leg: leg, V: V, T: T, p: pp };
+  }
+  function simCyc(p) {
+    var g = particles({ N: 14, dur: 3 * LEG, Tk: function (t) { return cyc(p, t).T; }, h: function (t) { return hOf(cyc(p, Math.min(t, 3 * LEG - 1e-6)).V); }, mol: 28 });
+    var r = pack(3 * LEG, function (t) { var c = cyc(p, Math.min(t, 3 * LEG - 1e-6)); return { V: c.V, T: c.T, p: c.p, leg: c.leg, k: c.p * c.V / 1000 / c.T }; });
+    r.g = g; r.T1 = K(p.t1); r.p2 = p.p1 * p.V1 / p.V2; r.T3 = r.T1 * p.V1 / p.V2; return r;
+  }
+  var LEGN = ['1 → 2: nén đẳng nhiệt', '2 → 3: đun nóng đẳng áp', '3 → 1: làm lạnh đẳng tích'], LEGC = [C_V, C_HOT, C_LIFT];
+  function drawCyc(ctx, W, H, p, s, f, st) {
+    bg(ctx, W, H);
+    var c = cyc(p, Math.min(st.t, 3 * LEG - 1e-6)), G = boxGeo(W, H, 0.42, 1); G.yb = H - 70;
+    var py = cylinder(ctx, G, hOf(c.V), { hmax: 1, piston: true, rod: c.leg === 0, rodLen: 50, scale: true, lock: c.leg === 2 });
+    drawMolecules(ctx, G, st.res, st.t, st.crowd, {});
+    if (c.leg === 1) flame(ctx, G.x + G.w / 2, G.yb + 60, 1, st.t);
+    if (c.leg === 2) label(ctx, '❄ làm lạnh', G.x + G.w / 2, G.yb + 40, C_COLD, 16, 'center');
+    if (c.leg === 0) label(ctx, 'nén chậm, nhiệt độ không đổi', G.x + G.w / 2, G.yb + 40, C_V, 14, 'center');
+    chipTxt(ctx, LEGN[c.leg], G.x, narrow(W) ? 168 : 24, LEGC[c.leg], 'left');
+    var sp = sidePos(W, H, G, 20); if (!narrow(W)) { sp.gy += 40; sp.ty += 40; }
+    gauge(ctx, sp.gx, sp.gy, sp.gr, c.p, Math.ceil(Math.max(p.p1, s.p, p.p1 * p.V1 / p.V2) * 1.25 / 50) * 50, 'p = ' + fmt(c.p, 1) + ' kPa');
+    thermo(ctx, sp.tx, sp.ty, sp.th, c.T - 273, -20, Math.max(100, K(p.t1) * p.V1 / p.V2 - 273 + 20));
+  }
+  addScene({
+    id: 'chu-trinh', group: 'dinhluat', chip: 'Chu trình p – V – T', title: ['Phương trình trạng thái: ', 'một chu trình'], chars: [], crowd: CROWD, speed: 1, loop: true,
+    hint: 'Chọn đồ thị p – V, V – T, p – T để thấy cùng một chu trình trên ba hệ trục',
+    blurb: 'Khí đi qua ba quá trình rồi trở về trạng thái đầu: nén đẳng nhiệt, đun nóng đẳng áp, làm lạnh đẳng tích. Trong suốt chu trình, tỉ số pV/T không đổi. Đây là dạng bài chuyển đồ thị giữa các hệ trục hay gặp.',
+    params: [
+      { k: 'p1', label: 'Áp suất p₁', type: 'range', min: 80, max: 150, step: 5, def: 100, unit: ' kPa' },
+      { k: 'V1', label: 'Thể tích V₁', type: 'range', min: 40, max: 60, step: 1, def: 50, unit: ' mL' },
+      { k: 'V2', label: 'Thể tích V₂ (sau khi nén)', type: 'range', min: 20, max: 35, step: 1, def: 25, unit: ' mL' },
+      { k: 't1', label: 'Nhiệt độ t₁', type: 'range', min: 0, max: 50, step: 1, def: 27, unit: ' °C' }],
+    sim: simCyc, draw: drawCyc,
+    modes: [['pV', 'Đồ thị p – V'], ['VT', 'Đồ thị V – T'], ['pT', 'Đồ thị p – T']],
+    graph: function (r, p, m, s, t) {
+      var T1 = r.T1, T3 = r.T3, p2 = r.p2, c = cyc(p, Math.min(t, 3 * LEG - 1e-6));
+      function leg(i, fx, fy) { var pts = []; for (var j = 0; j <= 60; j++) { var q = cyc(p, i * LEG + j / 60 * (LEG - 1e-6)); pts.push([fx(q), fy(q)]); } return { color: LEGC[i], pts: pts, name: LEGN[i], nodot: true }; }
+      var ax = m === 'pV' ? [function (q) { return q.V; }, function (q) { return q.p; }, 'V (mL)', 'p (kPa)'] : m === 'VT' ? [function (q) { return q.T; }, function (q) { return q.V; }, 'T (K)', 'V (mL)'] : [function (q) { return q.T; }, function (q) { return q.p; }, 'T (K)', 'p (kPa)'];
+      var S3 = [0, 1, 2].map(function (i) { return leg(i, ax[0], ax[1]); });
+      var xs = [], ys = []; S3.forEach(function (l) { l.pts.forEach(function (q) { xs.push(q[0]); ys.push(q[1]); }); });
+      var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y1 = Math.max.apply(null, ys), padx = (x1 - x0) * 0.25 + 5;
+      return { s: S3, xr: [Math.max(0, x0 - padx), x1 + padx], xl: ax[2], yl: ax[3], yr: [0, y1 * 1.2], dots: [{ x: ax[0](c), y: ax[1](c), color: PINK }] };
+    },
+    reads: function (p, s, r, t) { var c = cyc(p, Math.min(t, 3 * LEG - 1e-6)); return [['Áp suất p', fmt(c.p, 1) + ' kPa', 'weight'], ['Thể tích V', fmt(c.V, 1) + ' mL', 'vel'], ['Nhiệt độ T', fmt(c.T, 0) + ' K', 'drag'], ['pV/T', fmtSci(c.p * c.V / 1000 / c.T, 3) + ' J/K', 'push']]; },
+    meet: function (p, s, r, t) {
+      var c = cyc(p, Math.min(t, 3 * LEG - 1e-6));
+      return ['<strong>1 → 2 (đẳng nhiệt):</strong> nén chậm, T giữ ' + fmt(r.T1, 0) + ' K. V giảm thì p tăng (Boyle).', '<strong>2 → 3 (đẳng áp):</strong> đun nóng, p giữ ' + fmt(r.p2, 1) + ' kPa. T tăng thì V tăng (Charles).', '<strong>3 → 1 (đẳng tích):</strong> chốt pít-tông, làm lạnh. T giảm thì p giảm.'][c.leg] + ' Tỉ số pV/T luôn bằng ' + fmtSci(c.p * c.V / 1000 / c.T, 3) + ' J/K.';
+    },
+    formula: '<code>p · V / T = hằng số</code><code>p₁V₁/T₁ = p₂V₂/T₂</code><small>Phương trình trạng thái của khí lí tưởng. Giữ T không đổi được định luật Boyle; giữ p không đổi được định luật Charles; giữ V không đổi được quá trình đẳng tích.</small>',
+    ratios: function (p, r) {
+      return [
+        { t: 'Ba trạng thái của chu trình', rows: [{ k: 'Trạng thái 1', v: fmt(p.p1, 0) + ' kPa · ' + p.V1 + ' mL', r: fmt(r.T1, 0) + ' K', cur: false }, { k: 'Trạng thái 2', v: fmt(r.p2, 1) + ' kPa · ' + p.V2 + ' mL', r: fmt(r.T1, 0) + ' K', cur: false }, { k: 'Trạng thái 3', v: fmt(r.p2, 1) + ' kPa · ' + p.V1 + ' mL', r: fmt(r.T3, 0) + ' K', cur: false }] },
+        { t: 'Hình dạng đồ thị của từng quá trình', rows: [{ k: 'Đẳng nhiệt', v: 'p – V: hypebol', r: 'p – T, V – T: thẳng đứng', cur: false }, { k: 'Đẳng áp', v: 'V – T: thẳng qua O', r: 'p – V, p – T: nằm ngang', cur: false }, { k: 'Đẳng tích', v: 'p – T: thẳng qua O', r: 'p – V: thẳng đứng, V – T: nằm ngang', cur: false }] }];
+    },
+    tips: ['Chọn đồ thị p – V: quá trình nào là đường cong, quá trình nào là đoạn thẳng?', 'Chuyển sang V – T và p – T: đoạn đẳng áp và đẳng tích nằm thế nào so với gốc O?', 'Ở trạng thái 3, khí nóng nhất. Tính T₃ từ phương trình trạng thái rồi so với bảng.', 'Tự vẽ chu trình này trên giấy ở hệ trục p – T, rồi bấm chọn đồ thị để kiểm tra.']
+  });
+
+
+  /* ================= Trạng thái và giao diện ================= */
+  var S = { id: SCENES[0].id, P: {}, assign: {}, t: 0, playing: false, speed: 1, res: null, gm: {}, last: 0, inp: {}, drag: false, pend: 0 };
+  SCENES.forEach(function (sc) {
+    S.P[sc.id] = {}; sc.params.forEach(function (q) { S.P[sc.id][q.k] = q.def; });
+    S.assign[sc.id] = sc.chars.map(function (c, i) { return 'demo' + ((i + SCENES.indexOf(sc)) % 5); });
+    S.gm[sc.id] = sc.modes[0][0];
+  });
+  function sceneById(id) { for (var i = 0; i < SCENES.length; i++) if (SCENES[i].id === id) return SCENES[i]; return null; }
+  function cur() { return sceneById(S.id); }
+  function P() { return S.P[S.id]; }
+  function faces() {
+    var sc = cur();
+    return sc.chars.map(function (c, i) {
+      var r = rosterGet(S.assign[S.id][i]) || R[i % R.length];
+      var cv = faceOf(r) || placeholder((r && r.name[0] || '?').toUpperCase(), 'hsl(300,80%,70%)');
+      return { cv: cv, name: r ? r.name : c };
+    });
+  }
+  /* cả lớp: mỗi bạn trong danh sách là một khuôn mặt (dùng cho phân tử khí, hạt...) */
+  function crowd() {
+    var a = R.map(function (r) { return faceOf(r) || placeholder((r.name[0] || '?').toUpperCase(), 'hsl(300,80%,70%)'); });
+    return a.length ? a : [placeholder('?', PINK)];
+  }
+
+  function buildNav() {
+    GROUPS.forEach(function (g) {
+      var box = $(g.box);
+      SCENES.filter(function (s) { return s.group === g.id; }).forEach(function (sc) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = sc.chip; b.dataset.id = sc.id;
+        b.addEventListener('click', function () { selectScene(sc.id); });
+        box.appendChild(b);
+      });
+    });
+  }
+  function decs(q) { return q.d !== undefined ? q.d : q.step >= 1 ? 0 : (q.step >= 0.1 ? 1 : 2); }
+  function buildParams() {
+    var sc = cur(), box = $('params'); box.innerHTML = ''; S.inp = {};
+    sc.params.forEach(function (q) {
+      var item = document.createElement('div'); item.className = 'pitem';
+      var lab = document.createElement('div'); lab.className = 'plabel'; var sp = document.createElement('span'); sp.textContent = q.label; lab.appendChild(sp);
+      item.appendChild(lab);
+      if (q.type === 'range') {
+        var val = document.createElement('b'); lab.appendChild(val);
+        var inp = document.createElement('input'); inp.type = 'range'; inp.min = q.min; inp.max = q.max; inp.step = q.step; inp.value = P()[q.k]; inp.setAttribute('aria-label', q.label);
+        var show = function () { val.textContent = fmt(P()[q.k], decs(q)) + q.unit; };
+        show();
+        inp.addEventListener('input', function () { P()[q.k] = parseFloat(inp.value); show(); if (q.live) refresh(); else restart(); });
+        S.inp[q.k] = { inp: inp, show: show };
+        item.appendChild(inp);
+      } else {
+        var seg = document.createElement('div'); seg.className = 'seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', q.label);
+        q.opts.forEach(function (o) {
+          var b = document.createElement('button'); b.type = 'button'; b.textContent = o[1]; b.setAttribute('aria-pressed', String(P()[q.k] === o[0]));
+          b.addEventListener('click', function () { P()[q.k] = o[0]; seg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); }); b.setAttribute('aria-pressed', 'true'); if (q.live) refresh(); else restart(); });
+          seg.appendChild(b);
+        });
+        item.appendChild(seg);
+      }
+      box.appendChild(item);
+    });
+  }
+  /* cập nhật thanh trượt khi em kéo trên hình */
+  function syncParams() {
+    Object.keys(S.inp).forEach(function (k) { var o = S.inp[k]; o.inp.value = P()[k]; o.show(); });
+  }
+  function buildSlots() {
+    var sc = cur(), box = $('slots'); box.innerHTML = '';
+    sc.chars.forEach(function (c, i) {
+      var row = document.createElement('div'); row.className = 'slot';
+      var av = document.createElement('canvas'); av.className = 'avatar'; av.width = 124; av.height = 124; av.setAttribute('aria-hidden', 'true'); av.dataset.i = i;
+      var nm = document.createElement('div'); nm.className = 'names';
+      var l = document.createElement('span'); l.textContent = c;
+      var sel = document.createElement('select'); sel.setAttribute('aria-label', 'Học sinh đóng vai ' + c);
+      R.forEach(function (r) { var o = document.createElement('option'); o.value = r.id; o.textContent = r.name + (r.demo ? ' (mẫu)' : ''); sel.appendChild(o); });
+      sel.value = rosterGet(S.assign[S.id][i]) ? S.assign[S.id][i] : R[i % R.length].id;
+      sel.addEventListener('change', function () { S.assign[S.id][i] = sel.value; drawAvatars(); draw(); });
+      nm.appendChild(l); nm.appendChild(sel); row.appendChild(av); row.appendChild(nm); box.appendChild(row);
+    });
+    if (sc.crowd) {
+      var p = document.createElement('p'); p.className = 'hint'; p.style.margin = '0'; p.textContent = sc.crowd; box.appendChild(p);
+      var strip = document.createElement('div'); strip.className = 'crowd';
+      crowd().slice(0, 12).forEach(function (cv) { var c = document.createElement('canvas'); c.width = c.height = 64; c.getContext('2d').drawImage(cv, 0, 0, 64, 64); c.setAttribute('aria-hidden', 'true'); strip.appendChild(c); });
+      box.appendChild(strip);
+    }
+    drawAvatars();
+  }
+  function drawAvatars() {
+    var fs = faces();
+    document.querySelectorAll('canvas.avatar').forEach(function (c) { var x = c.getContext('2d'); x.clearRect(0, 0, 124, 124); var f = fs[+c.dataset.i]; if (f) x.drawImage(f.cv, 0, 0, 124, 124); });
+  }
+  function buildModes() {
+    var sc = cur(), sel = $('gmode'); sel.innerHTML = '';
+    sc.modes.forEach(function (m) { var o = document.createElement('option'); o.value = m[0]; o.textContent = m[1]; sel.appendChild(o); });
+    sel.value = S.gm[S.id];
+  }
+  function buildStatic() {
+    var sc = cur();
+    document.querySelectorAll('.chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.id === S.id)); });
+    $('blurb').textContent = sc.blurb; $('simhint').textContent = sc.hint; $('stTitle').textContent = sc.title[0] + sc.title[1];
+    $('formula').innerHTML = sc.formula;
+    $('tips').innerHTML = sc.tips.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
+    document.title = PAGE_TITLE + ' · ' + sc.chip;
+    $('track').style.touchAction = sc.drag ? 'pan-y' : '';
+    $('track').style.cursor = sc.drag ? 'crosshair' : '';
+  }
+  function buildRatios() {
+    var sc = cur(), blocks = sc.ratios(P(), S.res);
+    $('ratios').innerHTML = blocks.map(function (b) {
+      return '<div class="rb"><h3>' + esc(b.t) + '</h3><table>' + b.rows.map(function (r) { return '<tr' + (r.cur ? ' class="cur"' : '') + '><td>' + esc(r.k) + '</td><td>' + esc(r.v) + '</td><td>' + esc(r.r) + '</td></tr>'; }).join('') + '</table></div>';
+    }).join('');
+  }
+  function updateReads(s) {
+    var sc = cur(), rs = sc.reads(P(), s, S.res, S.t);
+    $('reads').innerHTML = rs.map(function (r) { return '<div class="read ' + r[2] + '"><div class="k">' + esc(r[0]) + '</div><div class="v">' + esc(r[1]) + '</div></div>'; }).join('');
+    $('meet').innerHTML = sc.meet(P(), s, S.res, S.t);
+  }
+
+  function draw() {
+    if (!S.res) return;
+    var sc = cur(), g = setup($('track')), s = at(S.res, S.t);
+    sc.draw(g.ctx, g.W, g.H, P(), s, faces(), { t: S.t, res: S.res, crowd: crowd() });
+    updateReads(s);
+    drawGraph();
+    $('tlabel').textContent = fmt(S.t, 1) + (sc.tu || ' s'); $('tslider').value = S.t;
+  }
+  function valAt(pts, x) {
+    if (!pts.length) return 0;
+    if (x <= pts[0][0]) return pts[0][1];
+    for (var i = 1; i < pts.length; i++) if (pts[i][0] >= x) { var a = pts[i - 1], b = pts[i], k = (x - a[0]) / ((b[0] - a[0]) || 1); return lerp(a[1], b[1], k); }
+    return pts[pts.length - 1][1];
+  }
+  function drawGraph() {
+    var sc = cur(), s = at(S.res, S.t), gr = sc.graph(S.res, P(), S.gm[S.id], s, S.t), yr = gr.yr;
+    if (!yr) {
+      var lo = 1e18, hi = -1e18;
+      gr.s.forEach(function (ln) { ln.pts.forEach(function (p) { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); }); });
+      if (!gr.noZero) lo = Math.min(lo, 0);
+      if (lo > hi) { lo = 0; hi = 1; }
+      yr = padRange(lo, hi);
+    }
+    var dots = gr.dots, spaceX = !!gr.xr;
+    if (!dots) {
+      dots = [];
+      gr.s.forEach(function (ln) { if (ln.hidden || ln.nodot) return; dots.push({ x: S.t, y: valAt(ln.pts, S.t), color: ln.color }); });
+    }
+    plot($('graph'), { xr: gr.xr || [0, S.res.T], yr: yr, xl: gr.xl || ('t (' + (sc.tu ? sc.tu.trim() : 's') + ')'), yl: gr.yl, series: gr.s, vx: spaceX ? (gr.vx === undefined ? null : gr.vx) : S.t, dots: dots });
+    $('legend').innerHTML = gr.s.filter(function (ln) { return ln.name; }).map(function (ln) { return '<span><i style="background:' + ln.color + (ln.dash ? ';opacity:.7' : '') + '"></i>' + esc(ln.name) + '</span>'; }).join('') + (gr.note ? '<span class="gnote">' + esc(gr.note) + '</span>' : '');
+  }
+  /* tính lại mô phỏng: restart = về 0 rồi chạy, refresh = giữ thời điểm đang xem */
+  function compute() { var sc = cur(); S.res = sc.sim(P()); $('tslider').max = S.res.T; buildRatios(); }
+  function restart() {
+    if (S.pend) return;
+    S.pend = requestAnimationFrame(function () { S.pend = 0; compute(); S.t = 0; play(true); });
+  }
+  function refresh() {
+    if (S.pend) return;
+    S.pend = requestAnimationFrame(function () { S.pend = 0; compute(); S.t = Math.min(S.t, S.res.T); if (!S.playing) draw(); });
+  }
+  function play(on) {
+    S.playing = on; $('play').textContent = on ? 'Dừng' : (S.t >= S.res.T - 0.01 ? 'Chạy lại' : 'Chạy'); S.last = 0;
+    if (on) { if (!S.raf) S.raf = requestAnimationFrame(frame); } else draw();
+  }
+  /* chỉ một vòng lặp hoạt hình tại một thời điểm (đổi thông số liên tục không làm chậm máy) */
+  function frame(now) {
+    S.raf = 0;
+    if (!S.playing) return;
+    if (!S.last) S.last = now;
+    var dt = Math.min(0.1, (now - S.last) / 1000); S.last = now;
+    S.t = S.t + dt * S.speed;
+    if (S.t >= S.res.T) {
+      if (cur().loop) S.t = S.t % S.res.T;
+      else { S.t = S.res.T; S.playing = false; draw(); $('play').textContent = 'Chạy lại'; return; }
+    }
+    draw();
+    S.raf = requestAnimationFrame(frame);
+  }
+  function selectScene(id) {
+    if (S.pend) { cancelAnimationFrame(S.pend); S.pend = 0; }
+    S.id = id; var sc = cur(); S.speed = sc.speed; $('speed').value = String(sc.speed);
+    buildStatic(); buildParams(); buildSlots(); buildModes(); compute(); S.t = 0; play(true);
+    try { history.replaceState(null, '', '#' + id); } catch (e) { /* bỏ qua */ }
+  }
+  function afterRoster() { renderRoster(); buildSlots(); draw(); }
+
+  $('play').addEventListener('click', function () {
+    if (S.playing) { play(false); return; }
+    if (S.t >= S.res.T - 0.01) S.t = 0;
+    play(true);
+  });
+  $('reset').addEventListener('click', function () { S.t = 0; play(false); });
+  $('tslider').addEventListener('input', function () { S.t = parseFloat(this.value); S.playing = false; $('play').textContent = 'Chạy'; draw(); });
+  $('speed').addEventListener('change', function () { S.speed = parseFloat(this.value); });
+  $('gmode').addEventListener('change', function () { S.gm[S.id] = this.value; drawGraph(); });
+  window.addEventListener('resize', function () { draw(); });
+
+  /* kéo hoặc chạm trên hình để đặt điểm M (cảnh nào có sc.drag) */
+  (function () {
+    var trk = $('track');
+    function pos(e) { var r = trk.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top, W: r.width, H: r.height }; }
+    function apply(e, first) {
+      var sc = cur(); if (!sc.drag) return false;
+      var p = pos(e), ok = sc.drag(p.x, p.y, p.W, p.H, P(), first);
+      if (ok) { syncParams(); refresh(); }
+      return ok;
+    }
+    trk.addEventListener('pointerdown', function (e) { if (apply(e, true)) { S.drag = true; try { trk.setPointerCapture(e.pointerId); } catch (x) { /* bỏ qua */ } } });
+    trk.addEventListener('pointermove', function (e) { if (S.drag) apply(e, false); });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (ev) { trk.addEventListener(ev, function () { S.drag = false; }); });
+  })();
+
+  /* ---------- Chỉnh ảnh ---------- */
+  var ed = { img: null, crop: newCrop(), name: '', sticker: null, drag: null };
+  var edC = $('edCanvas'), edX = edC.getContext('2d');
+  function drawEditor() {
+    if (!ed.img) return;
+    ed.sticker = makeSticker(ed.img, ed.crop);
+    edX.clearRect(0, 0, SZ, SZ);
+    for (var y = 0; y < SZ; y += 20) for (var x = 0; x < SZ; x += 20) { edX.fillStyle = ((x + y) / 20) % 2 ? '#241f29' : '#1b171f'; edX.fillRect(x, y, 20, 20); }
+    edX.drawImage(ed.sticker, 0, 0);
+  }
+  function syncEditor() {
+    var cr = ed.crop;
+    $('edZoom').value = cr.zoom; $('edX').value = cr.ox; $('edY').value = cr.oy; $('edRot').value = cr.rot;
+    document.querySelectorAll('input[name=shape]').forEach(function (r) { r.checked = r.value === cr.shape; });
+    $('edHint').textContent = cr.shape === 'cutout' ? 'Dùng ảnh PNG đã xóa nền: viền trắng ôm theo hình người.' : 'Kéo ảnh để dời vị trí, cuộn chuột hoặc dùng thanh trượt để phóng to.';
+  }
+  function openEditor() { $('edTitle').textContent = 'Chỉnh ảnh · ' + ed.name; syncEditor(); $('editor').hidden = false; drawEditor(); $('edDone').focus(); }
+  function closeEditor() { $('editor').hidden = true; ed.img = null; }
+  $('edZoom').addEventListener('input', function () { ed.crop.zoom = parseFloat(this.value); drawEditor(); });
+  $('edX').addEventListener('input', function () { ed.crop.ox = parseFloat(this.value); drawEditor(); });
+  $('edY').addEventListener('input', function () { ed.crop.oy = parseFloat(this.value); drawEditor(); });
+  $('edRot').addEventListener('input', function () { ed.crop.rot = parseFloat(this.value); drawEditor(); });
+  document.querySelectorAll('input[name=shape]').forEach(function (r) { r.addEventListener('change', function () { if (!this.checked) return; ed.crop.shape = this.value; syncEditor(); drawEditor(); }); });
+  $('edReset').addEventListener('click', function () { ed.crop = newCrop(); syncEditor(); drawEditor(); });
+  $('edCancel').addEventListener('click', closeEditor);
+  $('editor').addEventListener('pointerdown', function (e) { if (e.target === this) closeEditor(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('editor').hidden) closeEditor(); });
+  edC.addEventListener('pointerdown', function (e) { ed.drag = { x: e.clientX, y: e.clientY }; edC.setPointerCapture(e.pointerId); });
+  edC.addEventListener('pointermove', function (e) {
+    if (!ed.drag || !ed.img) return;
+    var cr = ed.crop, rect = edC.getBoundingClientRect(), ratio = SZ / rect.width;
+    var dxc = (e.clientX - ed.drag.x) * ratio, dyc = (e.clientY - ed.drag.y) * ratio;
+    ed.drag = { x: e.clientX, y: e.clientY };
+    if (cr.shape === 'cutout') { cr.ox += dxc / (SZ / 2); cr.oy += dyc / (SZ / 2); }
+    else {
+      var Rr = (SZ - 2 * PAD) / 2, side = Math.min(ed.img.naturalWidth, ed.img.naturalHeight) / cr.zoom;
+      cr.ox += (dxc * side / (2 * Rr)) / (ed.img.naturalWidth / 2); cr.oy += (dyc * side / (2 * Rr)) / (ed.img.naturalHeight / 2);
+    }
+    cr.ox = clamp(cr.ox, -1, 1); cr.oy = clamp(cr.oy, -1, 1);
+    $('edX').value = cr.ox; $('edY').value = cr.oy; drawEditor();
+  });
+  edC.addEventListener('pointerup', function () { ed.drag = null; }); edC.addEventListener('pointercancel', function () { ed.drag = null; });
+  edC.addEventListener('wheel', function (e) { if (!ed.img) return; e.preventDefault(); ed.crop.zoom = clamp(ed.crop.zoom * (1 - e.deltaY * 0.001), 0.5, 4); $('edZoom').value = ed.crop.zoom; drawEditor(); }, { passive: false });
+  $('edDone').addEventListener('click', function () {
+    if (!ed.img) return;
+    var c2 = document.createElement('canvas'); c2.width = c2.height = STORE; c2.getContext('2d').drawImage(ed.sticker || makeSticker(ed.img, ed.crop), 0, 0, STORE, STORE);
+    var png = c2.toDataURL('image/png'), r = { id: 'r' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), name: ed.name, png: png, demo: false, cv: c2 };
+    R = R.filter(function (x) { return !x.demo; }).concat([r]);
+    var ok = saveRoster();
+    $('rMsg').textContent = ok ? 'Đã thêm ' + ed.name + '. Chọn bạn này ở mục Nhân vật.' : 'Đã thêm ' + ed.name + ', nhưng trình duyệt không cho lưu lâu dài. Ảnh dùng được đến khi đóng trang.';
+    $('rName').value = '';
+    SCENES.forEach(function (sc) { S.assign[sc.id] = S.assign[sc.id].map(function (a, i) { return rosterGet(a) ? a : R[i % R.length].id; }); });
+    ed.img = null; $('editor').hidden = true; afterRoster();
+  });
+  $('rFile').addEventListener('change', function () {
+    var f = this.files[0]; this.value = ''; if (!f) return;
+    var nm = $('rName').value.trim(); if (!nm) { $('rMsg').textContent = 'Em nhập tên học sinh trước rồi hãy chọn ảnh nhé.'; return; }
+    var rd = new FileReader();
+    rd.onload = function () {
+      var im = new Image();
+      im.onload = function () { ed.img = im; ed.crop = newCrop(); ed.name = nm; openEditor(); };
+      im.onerror = function () { $('rMsg').textContent = 'Không đọc được ảnh này. Em thử ảnh JPG hoặc PNG khác.'; };
+      im.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  });
+  var wipeArm = 0;
+  $('rWipe').addEventListener('click', function () {
+    var btn = this;
+    if (!wipeArm) { wipeArm = 1; btn.textContent = 'Bấm lần nữa để xóa'; setTimeout(function () { wipeArm = 0; btn.textContent = 'Xóa hết ảnh'; }, 3000); return; }
+    wipeArm = 0; btn.textContent = 'Xóa hết ảnh';
+    R = R.filter(function (r) { return r.demo; }); saveRoster();
+    try { localStorage.removeItem(KEY); } catch (e) { /* bỏ qua */ }
+    SCENES.forEach(function (sc) { S.assign[sc.id] = S.assign[sc.id].map(function (a, i) { return rosterGet(a) ? a : R[i % R.length].id; }); });
+    $('rMsg').textContent = 'Đã xóa toàn bộ ảnh học sinh khỏi trình duyệt này.'; afterRoster();
+  });
+
+  /* ---------- Khởi động ---------- */
+  loadRoster(); buildNav(); renderRoster();
+  var startId = SCENES[0].id;
+  try { var hs = decodeURIComponent(location.hash.replace('#', '')); if (hs && sceneById(hs)) startId = hs; } catch (e) { /* bỏ qua */ }
+  selectScene(startId);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { phCache = {}; buildSlots(); draw(); });
+})();
+</script>
+
+<style>
+#cx-tools{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:9999;display:flex;gap:8px;font-family:"Be Vietnam Pro",system-ui,sans-serif}
+#cx-tools button{display:inline-flex;align-items:center;gap:7px;background:#0b0a0c;color:#f6eef2;border:1px solid #ff4fa3;border-radius:999px;padding:10px 16px;font:600 14px/1 "Be Vietnam Pro",system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.5)}
+#cx-tools button:hover{background:#ff4fa3;color:#0b0a0c}
+#cx-tools button:focus-visible{outline:3px solid #ffa6d2;outline-offset:2px}
+#cx-tools button.rec{background:#e5173f;border-color:#e5173f;color:#fff}
+#cx-tools svg{width:18px;height:18px;flex:none}
+#cx-toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);z-index:9999;background:#151317;color:#f6eef2;border:1px solid #ff4fa3;border-radius:8px;padding:10px 16px;font:500 14px/1.4 "Be Vietnam Pro",system-ui,sans-serif;max-width:min(92vw,420px);text-align:center}
+#cx-res{position:fixed;inset:0;z-index:10000;background:rgba(5,4,6,.82);display:grid;place-items:center;padding:16px;font-family:"Be Vietnam Pro",system-ui,sans-serif}
+#cx-res[hidden]{display:none}
+#cx-res .bx{background:#151317;color:#f6eef2;border:1px solid #ff4fa3;border-radius:14px;max-width:min(94vw,860px);max-height:94vh;overflow:auto;padding:16px;display:grid;gap:12px}
+#cx-res h2{margin:0;font:700 20px/1.2 "Be Vietnam Pro",system-ui,sans-serif}
+#cx-res img,#cx-res video{max-width:100%;max-height:60vh;border-radius:8px;background:#000;justify-self:center}
+#cx-res .ac{display:flex;gap:10px;flex-wrap:wrap}
+#cx-res .ac button{border-radius:10px;padding:12px 22px;font:700 16px/1 "Be Vietnam Pro",system-ui,sans-serif;cursor:pointer;border:1px solid #ff4fa3;background:transparent;color:#f6eef2}
+#cx-res .ac button.pri{background:#ff4fa3;color:#0b0a0c}
+#cx-res p{margin:0;color:#b3a3ae;font-size:13px}
+@media (max-width:520px){#cx-tools{left:12px;right:12px;justify-content:center}#cx-tools button{flex:1;justify-content:center;padding:11px 10px}}
+</style>
+<div id="cx-tools" role="group" aria-label="Chụp ảnh và ghi video mô phỏng">
+ <button type="button" id="cx-shot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Chụp ảnh</span></button>
+ <button type="button" id="cx-rec"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="6"/></svg><span>Ghi video</span></button>
+</div>
+<div id="cx-res" hidden role="dialog" aria-modal="true" aria-labelledby="cx-rt"></div>
+<div id="cx-toast" role="status" aria-live="polite" hidden></div>
+<script>
+(function(){
+  var WM='Physics EZ · Trần Thị Hằng';
+  var shotB=document.getElementById('cx-shot'), recB=document.getElementById('cx-rec'), toast=document.getElementById('cx-toast'), tt;
+  function say(m,ms){toast.textContent=m;toast.hidden=false;clearTimeout(tt);tt=setTimeout(function(){toast.hidden=true},ms||4000)}
+  function src(){return document.getElementById('track')}
+  function lessonName(){var h=document.querySelector('h1');return (h?h.textContent:'thi-nghiem').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'thi-nghiem'}
+  function stamp(){var d=new Date(),p=function(n){return (n<10?'0':'')+n};return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())}
+  function mark(ctx,w,h){var f=Math.max(12,Math.round(w/50));ctx.save();ctx.font='600 '+f+'px "Be Vietnam Pro",system-ui,sans-serif';ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillStyle='rgba(0,0,0,.55)';var tw=ctx.measureText(WM).width;ctx.fillRect(w-tw-f*1.2,h-f*1.9,tw+f*1.2,f*1.9);ctx.fillStyle='#ffa6d2';ctx.fillText(WM,w-f*.6,h-f*.45);ctx.restore()}
+  var resBlob=null,resName='',resUrl='';
+  async function dl(blob,name){
+    try{var c=window.claude;if(c&&c.use){var d=await c.use('downloads');if(d){await d.save({filename:name,data:blob});say('Đã lưu file.');return}}}catch(e){if(e&&e.code==='declined')return}
+    save(blob,name);say('Nếu máy không hiện hộp lưu, bấm chuột phải vào ảnh/video trong khung rồi chọn Lưu.',7000);
+  }
+  function showRes(blob,name,isVid){
+    var box=document.getElementById('cx-res');resBlob=blob;resName=name;if(resUrl)URL.revokeObjectURL(resUrl);resUrl=URL.createObjectURL(blob);
+    box.innerHTML='<div class="bx"><h2 id="cx-rt">'+(isVid?'Video đã ghi xong':'Ảnh đã chụp xong')+'</h2>'+(isVid?'<video controls playsinline src="'+resUrl+'"></video>':'<img alt="Ảnh chụp thí nghiệm" src="'+resUrl+'">')+'<div class="ac"><button type="button" class="pri" id="cx-dl">Tải về máy</button><button type="button" id="cx-x">Đóng</button></div><p>Nếu bấm "Tải về máy" mà không có file: bấm chuột phải vào '+(isVid?'video (hoặc nút ⋮)':'ảnh')+' rồi chọn '+(isVid?'Tải xuống':'Lưu ảnh thành…')+'.</p></div>';
+    box.hidden=false;
+    document.getElementById('cx-dl').addEventListener('click',function(){dl(resBlob,resName)});
+    document.getElementById('cx-x').addEventListener('click',closeRes);document.getElementById('cx-dl').focus();
+  }
+  function closeRes(){var box=document.getElementById('cx-res');var v=box.querySelector('video');if(v)v.pause();box.hidden=true;box.innerHTML=''}
+  document.getElementById('cx-res').addEventListener('mousedown',function(e){if(e.target===this)closeRes()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeRes()});
+  function save(blob,name){var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
+  function frame(c,o){var x=o.getContext('2d');x.fillStyle='#0b0a0c';x.fillRect(0,0,o.width,o.height);x.drawImage(c,0,0,o.width,o.height);mark(x,o.width,o.height)}
+  function mk(c){var o=document.createElement('canvas');o.width=c.width;o.height=c.height;return o}
+
+  shotB.addEventListener('click',function(){
+    var c=src();if(!c){say('Chưa có khung mô phỏng để chụp.');return}
+    try{
+      var o=mk(c);frame(c,o);
+      o.toBlob(function(b){
+        if(!b){say('Không chụp được ảnh. Hãy thử lại.');return}
+        showRes(b,'physics-ez-'+lessonName()+'-'+stamp()+'.png',false);
+      },'image/png');
+    }catch(e){say('Không chụp được ảnh. Hãy thử lại.')}
+  });
+
+  var mr=null,chunks=[],raf=0,timer=0,t0=0,out=null;
+  function pickType(){var t=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm','video/mp4'];for(var i=0;i<t.length;i++){if(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t[i]))return t[i]}return ''}
+  function label(s){recB.querySelector('span').textContent=s}
+  function stop(){if(mr&&mr.state!=='inactive')mr.stop()}
+  function start(){
+    var c=src();if(!c){say('Chưa có khung mô phỏng để ghi.');return}
+    if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){say('Trình duyệt này chưa hỗ trợ ghi video. Hãy dùng Chrome hoặc Edge, hoặc dùng công cụ quay màn hình của máy.',6000);return}
+    var type=pickType();out=mk(c);
+    var stream;try{stream=out.captureStream(30)}catch(e){say('Không bắt đầu ghi được.');return}
+    try{mr=new MediaRecorder(stream,type?{mimeType:type,videoBitsPerSecond:4e6}:{videoBitsPerSecond:4e6})}catch(e){say('Không bắt đầu ghi được.');return}
+    chunks=[];
+    mr.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data)};
+    mr.onstop=function(){
+      cancelAnimationFrame(raf);clearInterval(timer);recB.classList.remove('rec');label('Ghi video');
+      var mt=(mr.mimeType||type||'video/webm'),ext=/mp4/.test(mt)?'mp4':'webm';
+      var b=new Blob(chunks,{type:mt});
+      if(b.size<200){say('Video trống. Hãy ghi lại, nhớ bấm Chạy để mô phỏng chuyển động.',6000);return}
+      showRes(b,'physics-ez-'+lessonName()+'-'+stamp()+'.'+ext,true);
+    };
+    (function loop(){var cc=src();if(cc){if(out.width!==cc.width||out.height!==cc.height){/* giữ kích thước ban đầu, co dãn khung mới */}frame(cc,out)}raf=requestAnimationFrame(loop)})();
+    mr.start(500);t0=Date.now();recB.classList.add('rec');
+    timer=setInterval(function(){var s=Math.floor((Date.now()-t0)/1000);label('Dừng · '+(s<10?'0':'')+Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60));if(s>=120)stop()},250);
+    label('Dừng · 00:00');say('Đang ghi khung mô phỏng. Bấm Chạy, đổi thông số rồi bấm Dừng để lưu video.',5000);
+  }
+  recB.addEventListener('click',function(){if(mr&&mr.state==='recording')stop();else start()});
+})();
+</script>
+
+<script src="supabase-config.js"></script>
+<script src="ez.js"></script>
+</html>
